@@ -1,3 +1,7 @@
+# =========================
+# C/C++ & Fortran Basics
+# =========================
+
 # Prerequisites
 *.d
 
@@ -39,3 +43,44 @@
 
 # debug information files
 *.dwo
+
+# =========================
+# Visual Studio Specifics
+# =========================
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio 2015/2017/2019/2022 cache/options directory
+.vs/
+
+# Visual C++ specific caches
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.db
+
+# Build results directories (catches whole folders)
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet Packages
+*.nupkg
+packages/
+!packages/build/
