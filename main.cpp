@@ -8,4 +8,5 @@ int main() {
 
 
 	cout << "hello";
+	cout<<"testing"<<endl;
 }
