@@ -8,5 +8,6 @@ int main() {
 
 
 	cout << "hello";
-	cout << "salam dunya 2.0";
+	cout << "i am rayyan";
+	cout <<"meow gop gop";
 }
