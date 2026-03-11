@@ -8,5 +8,5 @@ int main() {
 
 
 	cout << "hello";
-	cout<<"testing"<<endl;
+	cout << "salam dunya 2.0";
 }
