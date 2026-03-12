@@ -1,8 +1,5 @@
 #include<iostream>
-#include "../include/ATM.h"
-
-//    ../ goes a folder back, /include  opens header file folder, then include header file as usual
-
+#include"ATM.h"
 using namespace std;
 
 int main() {
