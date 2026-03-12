@@ -1,5 +1,5 @@
 #include<iostream>
-#include "../include/ATM.h"
+#include"../include/ATM.h"   
 
 //    ../ goes a folder back, /include  opens header file folder, then include header file as usual
 
@@ -8,7 +8,7 @@ using namespace std;
 int main() {
 
 	//create ATM with initial cash (file handling for cash in ATM in phase 2)
-
+	cout << "hello";
 	//load accounts function
 	//load previous transactions
 
