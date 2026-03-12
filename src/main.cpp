@@ -1,5 +1,8 @@
 #include<iostream>
-#include"ATM.h"
+#include "../include/ATM.h"
+
+//  ../  jumps back a folder.  /include is foler including .h files. 
+
 using namespace std;
 
 int main() {
