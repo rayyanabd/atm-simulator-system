@@ -7,6 +7,9 @@
 
 using namespace std;
 
+void display() {
+	cout << "hafsa";
+}
 int main() {
 
 	//create ATM with initial cash (file handling for cash in ATM in phase 2)
@@ -19,8 +22,7 @@ int main() {
 	//start session ( atm.startSession(); )
 
 	//after session ends, cursor comes back here
-	//save transactions
-
+	display();
 
 	return 0;
 }
