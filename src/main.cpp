@@ -24,9 +24,9 @@ int main() {
 	//after session ends, cursor comes back here
 	display();
 
-	Account user;
-	user.changePIN();
-	user.miniStatement();
+	
+	
+	
 
 	return 0;
 }
