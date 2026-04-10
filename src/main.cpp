@@ -1,6 +1,6 @@
 #include<iostream>
-
-
+#include<string>
+#include "../include/Account.h"
 #include "../include/ATM.h"
 
 //  ../  jumps back a folder.  /include is foler including .h files. 
@@ -23,6 +23,10 @@ int main() {
 
 	//after session ends, cursor comes back here
 	display();
+
+	Account user;
+	user.changePIN();
+	user.miniStatement();
 
 	return 0;
 }
