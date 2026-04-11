@@ -1,11 +1,16 @@
-#pragma once
 
-#include "SavingsAccount.h"
+#pragma once
+#include <iostream>
+#include <string>
+#include "Account.h"
 #include "CurrentAccount.h"
-#include "Constants.h"
+using namespace std;
 
 class ATM {
-
 private:
-	 
+    Account* currentAccount;   
+public:
+   // ATM(Account* acc);    
+    void withdraw();
+    void fastCash();
 };

@@ -1,28 +1,26 @@
+
 #pragma once
-
-
-#include "Constants.h"
-
-#include<string>
-
-class Account
-{
-	std::string accountName;
+#include <iostream>
+#include <string>
+using namespace std;
+class Account {
+protected:
+	string accountName;
 	char* PIN;
 	double balance;
-
 public:
-	Account();
-	void changePIN();
-	void miniStatement();
-	~Account();
-};
-class Date
-{
-	int day;
-	int month;
-	int year;
-public:
-	Date();
-	void incrementDate();
+	Account() {
+		accountName = "";
+		PIN = nullptr;
+		balance = 0.0;
+	}
+	double getBalance() { 
+		return balance; 
+	}
+	string getAccountName() { 
+		return accountName;
+	}
+	// to be implemented by others
+	virtual string getAccountType() = 0;
+	virtual bool debit(double amount) = 0;
 };
