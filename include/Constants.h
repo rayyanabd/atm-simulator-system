@@ -1,8 +1,8 @@
 #pragma once
-
 #include <string>
+using namespace std;
 
-const int MAX_PIN_ATTEMPTS = 3;
-const string ADMIN_PIN = "0000";
-
-const int MINI_STATEMENT_COUNT = 5;
+inline const string ADMIN_PIN = "0000";
+inline const int ROLE_NONE        = 0;
+inline const int ROLE_USER        = 1;
+inline const int ROLE_SUPER_ADMIN = 2;
