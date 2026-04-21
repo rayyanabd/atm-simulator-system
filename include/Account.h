@@ -15,6 +15,7 @@ public:
     bool verifyPIN(const std::string& enteredPIN);
     bool isAccountLocked() const;
     
+    // THESE MUST BE HERE:
     void unlockAccount(); 
     void resetPIN(const std::string& newPIN);
     void adminMenu();
