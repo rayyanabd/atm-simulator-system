@@ -1,7 +1,13 @@
+#include <iostream>
+#include "ATM.h"
+#include "Account.h"
 #include<iostream>
 
 
 #include "../include/ATM.h"
+
+
+	
 
 //  ../  jumps back a folder.  /include is foler including .h files. 
 
@@ -11,6 +17,10 @@ void display() {
 	cout << "hafsa";
 }
 int main() {
+
+	ATM myAtm;
+	myAtm.start();
+	return 0;
 
 	//create ATM with initial cash (file handling for cash in ATM in phase 2)
 
@@ -23,6 +33,20 @@ int main() {
 
 	//after session ends, cursor comes back here
 	display();
+
+
+	// Note: You will need to declare the functions from Account.cpp 
+	// or put them in Account.h so main can see them.
+	void openAccount();
+	void depositMoney();
+
+		while (true) {
+			std::cout << "\n1. Open Account\n2. Deposit\n3. Exit\n";
+			int ch = getInt("Choice: ");
+			if (ch == 1) openAccount();
+			else if (ch == 2) depositMoney();
+			else if (ch == 3) break;
+		}
 
 	return 0;
 }
