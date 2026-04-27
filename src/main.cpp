@@ -6,6 +6,9 @@
 
 #include "../include/ATM.h"
 
+
+	
+
 //  ../  jumps back a folder.  /include is foler including .h files. 
 
 using namespace std;
@@ -14,6 +17,10 @@ void display() {
 	cout << "hafsa";
 }
 int main() {
+
+	ATM myAtm;
+	myAtm.start();
+	return 0;
 
 	//create ATM with initial cash (file handling for cash in ATM in phase 2)
 
