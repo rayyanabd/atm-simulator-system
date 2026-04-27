@@ -1,6 +1,9 @@
 #include <iostream>
 #include "../include/Account.h"
 #include "../include/Constants.h"
+#include "../include/ATM.h"
+
+//  ../  jumps back a folder.  /include is foler including .h files. 
 
 using namespace std;
 
@@ -67,6 +70,11 @@ int main() {
             cout << "[ERROR] Invalid input. Enter a number between 1 and 5.\n";
             continue;
         }
+	ATM myAtm;
+	myAtm.start();
+	return 0;
+
+	//create ATM with initial cash (file handling for cash in ATM in phase 2)
 
         switch (choice) {
             case 1:
@@ -94,4 +102,19 @@ int main() {
     }
 
     return 0;
+
+	// Note: You will need to declare the functions from Account.cpp 
+	// or put them in Account.h so main can see them.
+	void openAccount();
+	void depositMoney();
+
+		while (true) {
+			std::cout << "\n1. Open Account\n2. Deposit\n3. Exit\n";
+			int ch = getInt("Choice: ");
+			if (ch == 1) openAccount();
+			else if (ch == 2) depositMoney();
+			else if (ch == 3) break;
+		}
+
+	return 0;
 }
