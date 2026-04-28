@@ -1,8 +1,12 @@
 #pragma once
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#include <string>
+using namespace std;
+
+inline const string ADMIN_PIN = "0000";
+inline const int ROLE_NONE        = 0;
+inline const int ROLE_USER        = 1;
+inline const int ROLE_SUPER_ADMIN = 2;
 
 const int MAX_ACCOUNTS = 1000;
 const int STARTING_ACC_NUM = 1001;
 
-#endif

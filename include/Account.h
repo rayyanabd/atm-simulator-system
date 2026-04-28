@@ -1,24 +1,42 @@
 #pragma once
-
+#include <string>
 #include "ATM.h"
 #include "Constants.h"
-#ifndef ACCOUNT_H
-#define ACCOUNT_H
-#include <string>
 
+using namespace std;
+
+
+  
 class Account {
-protected:
+private:
+    bool isLocked;
+    int pinAttempts;
+    string accountPIN;
+    static const int MAX_ATTEMPTS = 3;
+
+    void lockAccount();
+  
+  protected:
     int accountNum;
-    std::string name;
+    string name;
     double balance;
-    std::string pin;
 
 public:
+    Account();
+
+    int enterPIN();
+    bool verifyPIN(const string& enteredPIN);
+    bool isAccountLocked() const;
+    void unlockAccount();
+    void resetPIN(const string& newPIN);
+    string getPIN() const;        
+    void adminMenu();
+
     Account(int accNum, std::string nm, double bal, std::string p);
     virtual ~Account() {}
 
     int getAccountNum() const { return accountNum; }
-    std::string getName() const { return name; }
+    string getName() const { return name; }
     double getBalance() const { return balance; }
     bool validatePin(std::string p) const;
 
@@ -26,4 +44,4 @@ public:
     virtual bool withdraw(double amount); // Virtual so children can override logic
 };
 
-#endif
+
