@@ -10,6 +10,8 @@ using namespace std;
 //    currentAccount = acc;
 //}
 
+ATM::ATM() : totalAccounts(0), accCounter(STARTING_ACC_NUM) {}
+
 void ATM::withdraw() {
    /* if (currentAccount == nullptr) {
         cout << "No account linked!\n";
@@ -63,3 +65,9 @@ void ATM::fastCash() {
         cout << "New Balance : Rs. " << currentAccount->getBalance() << "\n";
     }
 }
+
+
+
+
+// Logic for searchAcc, openAccount, etc., goes here, 
+// interacting with the Account objects instead of array

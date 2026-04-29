@@ -40,6 +40,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\Account.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\ATM.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -54,9 +57,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Transaction.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Account.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
