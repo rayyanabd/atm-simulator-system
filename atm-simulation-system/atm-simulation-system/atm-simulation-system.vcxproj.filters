@@ -27,9 +27,6 @@
     <ClCompile Include="..\..\src\CurrentAccount.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SavingsAccount.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Transaction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -50,9 +47,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\CurrentAccount.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\SavingsAccount.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Transaction.h">

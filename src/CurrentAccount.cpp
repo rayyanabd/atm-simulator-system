@@ -1,43 +1,33 @@
-
-#include <iostream>
-#include <string>
 #include "../include/CurrentAccount.h"
+#include <iostream>
+
 using namespace std;
 
-//daily limit logic implemented in debit function of current account. 
-//if amount exceeds daily limit, transaction is denied and user is informed about remaining limit for the day.
-//if amount is within limit, it is debited from balance and added to daily withdrawn amount.
-
-CurrentAccount::CurrentAccount() {
-    dailyLimit = 25000.0;
+CurrentAccount::CurrentAccount() : Account() {
+    dailyLimit = 50000.0;
     dailyWithdrawn = 0.0;
+    overdraftLimit = 10000.0;
+    accountNumber = "1001"; // Default for testing
+    pin = "1234";
+    balance = 50000;
 }
-bool CurrentAccount::checkAndResetDailyLimit(double amount) {
-    double remaining = dailyLimit - dailyWithdrawn;
-    if (amount > remaining) {
-        cout << "ERROR!! EXCEEDS DAILY LIMIT\n";
-        cout << "Remaining Today : Rs. " << remaining << "\n";
-        return false;
-    }
-    return true;
-}
+
 bool CurrentAccount::debit(double amount) {
-    if (amount > balance) {
-        cout << "Insufficient balance!\n";
+    // This logic ensures the cumulative daily withdrawal doesn't exceed 50,000
+    if (dailyWithdrawn + amount > dailyLimit) {
+        double remaining = dailyLimit - dailyWithdrawn;
+        cout << "[LIMIT] Daily withdrawal limit reached. Remaining for today: Rs. " << remaining << endl;
         return false;
     }
-    if (!checkAndResetDailyLimit(amount)) 
+
+    // Balance check
+    if (amount > (balance + overdraftLimit)) {
+        cout << "[BALANCE] Insufficient funds.\n";
         return false;
+    }
+
     balance -= amount;
     dailyWithdrawn += amount;
+    addTransaction(TransactionType::WITHDRAWAL, amount, "ATM Withdrawal");
     return true;
-}
-double CurrentAccount::getDailyWithdrawn() { 
-    return dailyWithdrawn; 
-}
-double CurrentAccount::getRemainingLimit() { 
-    return dailyLimit - dailyWithdrawn;
-}
-string CurrentAccount::getAccountType() { 
-    return "Current Account";   // ans of virtual function implemented in current account class
 }

@@ -1,73 +1,276 @@
-#include <iostream>
-#include <string>
 #include "../include/ATM.h"
+#include <iostream>
+
 using namespace std;
 
-//withdraw(); and fast cash();
 
-//ATM::ATM(Account* acc)  //constructor
-//{
-//    currentAccount = acc;
-//}
 
-ATM::ATM() : totalAccounts(0), accCounter(STARTING_ACC_NUM) {}
+ATM::ATM(double initialCash) {
+    cashAvailable = initialCash;
+    accountCount = 0;
+    currentAccount = nullptr;
+    for (int i = 0; i < MAX_ACCOUNTS; i++) accounts[i] = nullptr;
+}
 
-void ATM::withdraw() {
-   /* if (currentAccount == nullptr) {
-        cout << "No account linked!\n";
-        return;
-    }*/
-    cout << "\n ======= WITHDRAW CASH =======\n";
-    cout << "Balance: Rs. " << currentAccount->getBalance() << "\n";
-    double amount;
-    cout << "Enter amount: Rs. ";
-    cin >> amount;
-    if (amount <= 0) {
-        cout << "Invalid amount\n";
-        return ;
+ATM::~ATM() {
+    for (int i = 0; i < accountCount; i++) {
+        delete accounts[i];
     }
-    if ((int)amount % 100 != 0) {
-        cout << "error!! enter multiples of Rs.100 only\n";
+}
+
+void ATM::addAccount(Account* acc) {
+    if (accountCount < MAX_ACCOUNTS) {
+        accounts[accountCount++] = acc;
+    }
+}
+
+int ATM::searchAcc(string accNum) {
+    for (int i = 0; i < accountCount; i++) {
+        if (accounts[i]->getAccountNumber() == accNum) return i;
+    }
+    return -1;
+}
+
+void ATM::start() {
+    int choice;
+    bool systemRunning = true;
+
+    while (systemRunning) {
+        cout << "\n====================================\n";
+        cout << "      WELCOME TO THE ATM SYSTEM     \n";
+        cout << "====================================\n";
+        cout << "1. Insert Card\n";
+        cout << "0. Power Off System\n";
+        cout << "Choice: ";
+
+        if (!(cin >> choice)) {
+            cin.clear(); cin.ignore(1000, '\n');
+            cout << "[INVALID] Please enter 1 or 0.\n";
+            continue;
+        }
+
+        if (choice == 0) {
+            cout << "Shutting down system... Goodbye!\n";
+            systemRunning = false;
+        }
+        else if (choice == 1) {
+            int accAttempts = 0;
+            bool sessionActive = false;
+
+            // Account Number Identification 
+            while (accAttempts < 3) {
+                string accNum;
+                cout << "\nEnter Account Number: ";
+                cin >> accNum;
+
+                if (insertCard(accNum)) {
+                    // Check if account is already locked before proceeding
+                    if (currentAccount->isAccountLocked()) {
+                        cout << "ERROR: This account is currently locked. Please contact Admin.\n";
+                        sessionActive = true;
+                        break;
+                    }
+
+                    //  PIN Verification 
+                    int pinAttempts = 0;
+                    bool pinSuccess = false;
+
+                    while (pinAttempts < 3) {
+                        string pin;
+                        cout << "Enter 4-Digit PIN: ";
+                        cin >> pin;
+
+                        // validatePIN handles the internal counter and locking logic
+                        if (currentAccount->validatePIN(pin)) {
+                            cout << "Login accepted.\n";
+                            pinSuccess = true;
+                            showMainMenu(); // Enter banking system
+                            break;
+                        }
+                        else {
+                            pinAttempts++;
+                            if (currentAccount->isAccountLocked()) {
+                                cout << "\n[SECURITY ALERT] Wrong PIN entered 3 times.\n";
+                                cout << "[!] ACCOUNT OFFICIALLY LOCKED.\n";
+                                break;
+                            }
+                            cout << "Incorrect PIN. Try again.\n";
+                        }
+                    }
+
+                    sessionActive = true;
+                    break;
+                }
+                else {
+                    accAttempts++;
+                    if (accAttempts < 3) cout << "[ERROR] Account not recognized.\n";
+                }
+            }
+
+            // Security cleanup after 3 failed account number tries
+            if (!sessionActive && accAttempts == 3) {
+                cout << "\n[SECURITY] 3 Invalid Account attempts. CARD EJECTED.\n";
+            }
+
+            // Ensure card is "ejected" (currentAccount set to null) for next user
+            ejectCard();
+        }
+    }
+}
+
+bool ATM::insertCard(string accNum) {
+    int temp = searchAcc(accNum);
+    if (temp != -1) {
+        currentAccount = accounts[temp];
+        return true;
+    }
+    cout << "[ERROR] Card unrecognized or invalid account.\n";
+    return false;
+}
+
+bool ATM::enterPIN(string pin) {
+    if (currentAccount->validatePIN(pin)) {
+        cout << "[SUCCESS] Access Granted.\n";
+        return true;
+    }
+    cout << "[DENIED] Incorrect PIN.\n";
+    currentAccount = nullptr;
+    return false;
+}
+
+void ATM::withdraw(double amount) {
+    
+    if (amount > 20000) {
+        cout << "DENIED: Maximum withdrawal per transaction is Rs. 20,000.\n";
         return;
     }
+
+    if (amount > cashAvailable) {
+        cout << "ERROR: ATM has insufficient cash reserve.\n";
+        return;
+    }
+
+    // currentAccount->debit will handle the Daily Limit check (50,000)
     if (currentAccount->debit(amount)) {
-        cout << "Rs. " << amount << "withdrawn!\n";
-        cout << "New Balance : Rs. " << currentAccount->getBalance() << "\n";
+        cashAvailable -= amount;
+        cout << "[SUCCESS] Please collect your cash: Rs. " << amount << endl;
     }
 }
 
 void ATM::fastCash() {
-    /*if (currentAccount == nullptr) {
-        cout << "No account linked!\n";
-        return;
-    }*/
-    double fixAmounts[] = { 500, 1000, 2000, 5000, 10000, 20000 };
+   
+    double options[] = { 500, 1000, 2000, 5000, 10000, 20000 };
     cout << "\n======= FAST CASH =======\n";
-    cout << "Balance : Rs. " << currentAccount->getBalance() << "\n\n";
     for (int i = 0; i < 6; i++) {
-        cout << (i + 1) << ". Rs. " << fixAmounts[i] << "\n";
+        cout << i + 1 << ". Rs. " << options[i] << endl;
     }
-    cout << "7. Cancel\n";
+
     int choice;
-    cout << "enter your choice: ";
+    cout << "Choice: "; 
     cin >> choice;
-    if (choice == 7) {
-        cout << "Cancelled!\n";
-        return;
+
+    if (choice >= 1 && choice <= 6) {
+        // Fast cash automatically passes the amount to the withdraw function
+        withdraw(options[choice - 1]);
     }
-    if (choice < 1 || choice > 6) {
-        cout << "Invalid choice!\n";
-        return;
-    }
-    double amount = fixAmounts[choice - 1];
-    if (currentAccount->debit(amount)) {
-        cout << "Rs. " << amount << " withdrawn!\n";
-        cout << "New Balance : Rs. " << currentAccount->getBalance() << "\n";
+    else {
+        cout << "Selection out of range.\n";
     }
 }
 
+void ATM::showMainMenu() {
+    int choice = -1;
+    while (choice != 0) {
+        cout << "\n---------- MAIN MENU ----------\n";
+        cout << "1. Balance Inquiry\n";
+        cout << "2. Cash Withdrawal\n";
+        cout << "3. Cash Deposit\n";     
+        cout << "4. Fast Cash\n";
+        cout << "5. Change PIN\n";        
+        cout << "6. Mini Statement\n";
+        cout << "0. Logout / Exit\n";
+        cout << "-------------------------------\n";
+        cout << "Choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: checkBalance(); break;
+        case 2: {
+            double amt; cout << "Amount: "; cin >> amt;
+            withdraw(amt); break;
+        }
+        case 3: deposit(); break;
+        case 4: fastCash(); break;
+        case 5: changePIN(); break;
+        case 6: currentAccount->printMiniStatement(); break;
+        case 0: ejectCard(); break;
+        default: cout << "Invalid choice.\n";
+        }
+    }
+}
+
+void ATM::deposit() {
+    double amount;
+    cout << "\n======= CASH DEPOSIT =======\n";
+    cout << "Enter amount to deposit: Rs. ";
+    cin >> amount;
 
 
+    if (amount > 50000) {
+        cout << "Error: Maximum deposit limit per transaction is Rs. 50,000.\n";
+        return;
+    }
 
-// Logic for searchAcc, openAccount, etc., goes here, 
-// interacting with the Account objects instead of array
+    if (amount <= 0) {
+        cout << "Invalid amount.\n";
+        return;
+    }
+
+    currentAccount->credit(amount);
+    cashAvailable += amount;
+    cout << "Deposit complete.\n";
+}
+
+void ATM::checkBalance() {
+    cout << "\n======= BALANCE INQUIRY =======\n";
+    cout << "Account Holder: " << currentAccount->getAccountNumber() << endl;
+    cout << "Current Balance: Rs. " << currentAccount->getBalance() << endl;
+}
+
+void ATM::changePIN() {
+    string oldPin, newPin, confirmPin;
+    cout << "\n======= PIN CHANGE =======\n";
+    cout << "Enter Current PIN: ";
+    cin >> oldPin;
+
+    // Verify current PIN before allowing change
+    if (currentAccount->validatePIN(oldPin)) {
+        cout << "Enter New 4-Digit PIN: ";
+        cin >> newPin;
+
+        
+        if (newPin.length() != 4) {
+            cout << "Error: PIN must be exactly 4 digits.\n";
+            return;
+        }
+
+        cout << "Confirm New PIN: ";
+        cin >> confirmPin;
+
+        if (newPin == confirmPin) {
+            currentAccount->changePIN(newPin);
+            cout << "PIN updated. Please use your new PIN next time.\n";
+        }
+        else {
+            cout << "PINs do not match. Change aborted.\n";
+        }
+    }
+    else {
+        cout << "Incorrect current PIN.\n";
+    }
+}
+
+void ATM::ejectCard() {
+    cout << "[INFO] Card ejected. Goodbye!\n";
+    currentAccount = nullptr;
+}

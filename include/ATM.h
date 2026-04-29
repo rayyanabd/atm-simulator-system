@@ -2,30 +2,38 @@
 #include <iostream>
 #include <string>
 #include "Account.h"
-#include "CurrentAccount.h"
 #include "Constants.h"
-using namespace std;
 
 class ATM {
 private:
-    Account* currentAccount;   
-    Account* accounts[MAX_ACCOUNTS]; // Using pointers for polymorphism
-    int totalAccounts;
-    int accCounter;
+    Account* accounts[MAX_ACCOUNTS];
+    int accountCount;
+    Account* currentAccount;
+    double cashAvailable;
 
-    int searchAcc(int num);
-    bool checkPinFormat(std::string p);
-    double getAmountInput(std::string msg);
-    int getIntInput(std::string msg);
   
-public:
-   // ATM(Account* acc);    
-    void withdraw();
-    void fastCash();
-    ATM();
-    ~ATM();
-    void start();
-    void openAccount();
-    void depositMoney();
-};
+    int searchAcc(string accNum);
+    void showMainMenu(); //
 
+public:
+    ATM(double initialCash);
+    ~ATM();
+
+
+
+    void addAccount(Account* account);
+    bool insertCard(std::string accNum);
+    bool enterPIN(std::string pin);
+    void ejectCard();
+
+   
+    void withdraw(double amount);
+    void deposit();     
+    void checkBalance(); 
+    void changePIN();    
+    void fastCash();
+    void miniStatement();
+
+    // System Entry Point
+    void start();
+};

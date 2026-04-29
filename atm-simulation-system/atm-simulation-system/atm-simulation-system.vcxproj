@@ -130,7 +130,6 @@
     <ClCompile Include="..\..\src\ATM.cpp" />
     <ClCompile Include="..\..\src\CurrentAccount.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
-    <ClCompile Include="..\..\src\SavingsAccount.cpp" />
     <ClCompile Include="..\..\src\Transaction.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -138,7 +137,6 @@
     <ClInclude Include="..\..\include\ATM.h" />
     <ClInclude Include="..\..\include\Constants.h" />
     <ClInclude Include="..\..\include\CurrentAccount.h" />
-    <ClInclude Include="..\..\include\SavingsAccount.h" />
     <ClInclude Include="..\..\include\Transaction.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
