@@ -1,9 +1,15 @@
 #include "../include/Account.h"
 #include <iostream>
-
 using namespace std;
 
 Account::Account() {
+
+     accountNumber = "UNKNOWN";
+     accountHolder = "UNKNOWN";
+     CNIC = "NULL";
+     phone_number = "NULL";
+     pin = "NULL";
+
     balance = 0.0;
     isLocked = false;
     loginAttempts = 0;

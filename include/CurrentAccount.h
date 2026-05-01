@@ -10,6 +10,8 @@ private:
 public:
 
     CurrentAccount();
+    CurrentAccount(string accno, string name, string cnic, string phoneno, double b);
+    void  createAccount();
     bool debit(double amount) override;
     std::string getAccountType() override { return "Current Account"; }
 };

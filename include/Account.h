@@ -10,6 +10,8 @@ protected:
     string accountNumber;
     string accountHolder;
     string pin;
+    string CNIC;
+    string phone_number;
 
     double balance;
     bool isLocked;
@@ -23,6 +25,7 @@ public:
     Account();
     virtual ~Account(); // Virtual destructor for memory safety
 
+  
     // Common Logic
     bool validatePIN(std::string p);
     void credit(double amount);

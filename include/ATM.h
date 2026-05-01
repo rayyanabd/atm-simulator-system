@@ -16,6 +16,7 @@ private:
     void showMainMenu(); //
 
 public:
+    ATM();
     ATM(double initialCash);
     ~ATM();
 

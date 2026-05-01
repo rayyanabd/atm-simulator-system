@@ -1,9 +1,15 @@
 #include "../include/ATM.h"
 #include <iostream>
-
+#include<fstream>
 using namespace std;
 
-
+ATM::ATM()
+{
+    cashAvailable = 0;
+    accountCount = 0;
+    currentAccount = nullptr;
+    for (int i = 0; i < MAX_ACCOUNTS; i++) accounts[i] = nullptr;
+}
 
 ATM::ATM(double initialCash) {
     cashAvailable = initialCash;
@@ -25,9 +31,33 @@ void ATM::addAccount(Account* acc) {
 }
 
 int ATM::searchAcc(string accNum) {
+
     for (int i = 0; i < accountCount; i++) {
         if (accounts[i]->getAccountNumber() == accNum) return i;
     }
+   //file check
+        string accNo, name, cnic, phone,pin;
+        double balanceStr;
+        ifstream infile("account.txt");
+        if (!infile) {
+            cout << "File not found!\n";
+            return -1;
+        }
+        while (getline(infile, accNo, ',') &&
+            getline(infile, name, ',') &&
+            getline(infile, cnic, ',') &&
+            getline(infile, phone, ',') &&
+            getline(infile, pin, ',') &&
+            infile >> balanceStr )
+        {
+            if (accNo == accNum)
+            {
+                accounts[accountCount] = new CurrentAccount(accNo, name, cnic, phone, balanceStr,pin);
+                int i = accountCount;
+                accountCount++;
+                return i;
+            }
+        }
     return -1;
 }
 
