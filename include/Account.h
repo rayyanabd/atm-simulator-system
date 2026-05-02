@@ -25,7 +25,7 @@ public:
     Account();
     virtual ~Account(); // Virtual destructor for memory safety
 
-  
+    void setdata(string accno, string name, string cnic, string phoneno, double b, string pin);
     // Common Logic
     bool validatePIN(std::string p);
     void credit(double amount);

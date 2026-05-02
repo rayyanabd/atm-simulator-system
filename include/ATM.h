@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include "Account.h"
+#include"CurrentAccount.h"
 #include "Constants.h"
 
 class ATM {
@@ -11,7 +12,6 @@ private:
     Account* currentAccount;
     double cashAvailable;
 
-  
     int searchAcc(string accNum);
     void showMainMenu(); //
 

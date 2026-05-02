@@ -12,7 +12,8 @@ CurrentAccount::CurrentAccount() : Account() {
 void  CurrentAccount::createAccount()
 {
         cout << "Enter your name" << endl;
-        cin >> accountHolder;
+        cin.ignore();                  
+        getline(cin, accountHolder);
 
         cout << "Enter CNIC Number" << endl;
         cin >> CNIC;
@@ -35,23 +36,11 @@ void  CurrentAccount::createAccount()
         cout << "Account Created successfully!!" << endl;
 
         ofstream outfile("account.txt", ios::app);
-        outfile << accountNumber << "," << accountHolder <<"," << CNIC <<"," << phone_number<<"," <<balance<<pin<<endl;
+        outfile << accountNumber << "," << accountHolder <<"," << CNIC <<"," << phone_number<<"," <<balance<<"," << pin << endl;
         outfile.close();
 }
 
-CurrentAccount::CurrentAccount(string accno, string name, string cnic, string phoneno, double b,string pin)
-{
-    accountHolder = name;
-    CNIC = cnic;
-    phone_number=phoneno;
-    accountNumber = accno;
-    balance = b;
-    this->pin = pin;
-    dailyLimit = 50000.0;
-    dailyWithdrawn = 0.0;
-    overdraftLimit = 10000.0;
 
-}
 bool CurrentAccount::debit(double amount) {
     // This logic ensures the cumulative daily withdrawal doesn't exceed 50,000
     if (dailyWithdrawn + amount > dailyLimit) {

@@ -22,6 +22,7 @@ ATM::~ATM() {
     for (int i = 0; i < accountCount; i++) {
         delete accounts[i];
     }
+
 }
 
 void ATM::addAccount(Account* acc) {
@@ -47,15 +48,18 @@ int ATM::searchAcc(string accNum) {
             getline(infile, name, ',') &&
             getline(infile, cnic, ',') &&
             getline(infile, phone, ',') &&
-            getline(infile, pin, ',') &&
-            infile >> balanceStr )
+            infile >> balanceStr  &&
+            infile.ignore(1, ',') &&
+            getline(infile, pin)
+            )
         {
             if (accNo == accNum)
             {
-                accounts[accountCount] = new CurrentAccount(accNo, name, cnic, phone, balanceStr,pin);
-                int i = accountCount;
-                accountCount++;
-                return i;
+                Account* tempAcc = new CurrentAccount();
+                tempAcc->setdata(accNo, name, cnic, phone, balanceStr, pin);
+                currentAccount = tempAcc;
+                accounts[accountCount++] = tempAcc;
+                return -2;
             }
         }
     return -1;
@@ -150,8 +154,12 @@ void ATM::start() {
 
 bool ATM::insertCard(string accNum) {
     int temp = searchAcc(accNum);
-    if (temp != -1) {
+    if (temp >=0) {
         currentAccount = accounts[temp];
+        return true;
+    }
+    if (temp == -2)
+    {
         return true;
     }
     cout << "[ERROR] Card unrecognized or invalid account.\n";

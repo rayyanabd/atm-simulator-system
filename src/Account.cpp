@@ -23,6 +23,15 @@ Account::~Account() {
     }
 }
 
+void Account::setdata(string accno, string name, string cnic, string phoneno, double b, string pin)
+{
+    accountHolder = name;
+    CNIC = cnic;
+    phone_number = phoneno;
+    accountNumber = accno;
+    balance = b;
+    this->pin = pin;
+}
 bool Account::isAccountLocked() const {
     return isLocked;
 }
