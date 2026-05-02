@@ -25,10 +25,14 @@ public:
     bool insertCard(std::string accNum);
     bool enterPIN(std::string pin);
     void ejectCard();
+    Account* getCurrentAccount();
+    const Account* getCurrentAccount() const;
 
    
     void withdraw(double amount);
+    bool withdrawAmount(double amount);
     void deposit();     
+    bool depositAmount(double amount);
     void checkBalance(); 
     void changePIN();    
     void fastCash();

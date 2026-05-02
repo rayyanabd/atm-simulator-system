@@ -24,6 +24,14 @@ void ATM::addAccount(Account* acc) {
     }
 }
 
+Account* ATM::getCurrentAccount() {
+    return currentAccount;
+}
+
+const Account* ATM::getCurrentAccount() const {
+    return currentAccount;
+}
+
 int ATM::searchAcc(string accNum) {
     for (int i = 0; i < accountCount; i++) {
         if (accounts[i]->getAccountNumber() == accNum) return i;
@@ -129,7 +137,7 @@ bool ATM::insertCard(string accNum) {
 }
 
 bool ATM::enterPIN(string pin) {
-    if (currentAccount->validatePIN(pin)) {
+    if (currentAccount != nullptr && currentAccount->validatePIN(pin)) {
         cout << "[SUCCESS] Access Granted.\n";
         return true;
     }
@@ -155,6 +163,27 @@ void ATM::withdraw(double amount) {
         cashAvailable -= amount;
         cout << "[SUCCESS] Please collect your cash: Rs. " << amount << endl;
     }
+}
+
+bool ATM::withdrawAmount(double amount) {
+    if (currentAccount == nullptr || amount <= 0) {
+        return false;
+    }
+
+    if (amount > 20000) {
+        return false;
+    }
+
+    if (amount > cashAvailable) {
+        return false;
+    }
+
+    if (currentAccount->debit(amount)) {
+        cashAvailable -= amount;
+        return true;
+    }
+
+    return false;
 }
 
 void ATM::fastCash() {
@@ -229,6 +258,20 @@ void ATM::deposit() {
     currentAccount->credit(amount);
     cashAvailable += amount;
     cout << "Deposit complete.\n";
+}
+
+bool ATM::depositAmount(double amount) {
+    if (currentAccount == nullptr) {
+        return false;
+    }
+
+    if (amount > 50000 || amount <= 0) {
+        return false;
+    }
+
+    currentAccount->credit(amount);
+    cashAvailable += amount;
+    return true;
 }
 
 void ATM::checkBalance() {

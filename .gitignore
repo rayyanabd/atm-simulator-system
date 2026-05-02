@@ -49,6 +49,7 @@
 # =========================
 
 # User-specific files
+.DS_Store
 *.rsuser
 *.suo
 *.user
@@ -66,6 +67,7 @@ ipch/
 *.db
 
 # Build results directories (catches whole folders)
+[Bb]uild/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
