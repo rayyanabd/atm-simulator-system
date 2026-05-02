@@ -1,16 +1,25 @@
-#include "../include/ATM.h"
-#include "../include/CurrentAccount.h"
+#include <iostream>
+#include "ATM.h"
+#include "CurrentAccount.h"
 
-int main() {
-    // 1. Create ATM with 100,000 cash
+using namespace std;
+
+int main()
+{
+    // Create ATM with initial cash
     ATM myATM(100000.0);
 
-    // 2. Add a test account (Since we haven't done file handling yet)
-    // Account details: Number="1001", PIN="1234", Balance=50000
+    // Load saved withdrawal records
+    myATM.loadWithdrawals();
+
+    // Add test account
     myATM.addAccount(new CurrentAccount());
 
-    // 3. Launch system
+    // Start ATM system
     myATM.start();
+
+    // Save withdrawals before exit
+    myATM.saveWithdrawals();
 
     return 0;
 }

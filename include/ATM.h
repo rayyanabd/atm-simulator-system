@@ -1,39 +1,56 @@
-#pragma once
+#ifndef ATM_H
+#define ATM_H
+
 #include <iostream>
 #include <string>
 #include "Account.h"
 #include "Constants.h"
 
-class ATM {
+using namespace std;
+
+class ATM
+{
 private:
     Account* accounts[MAX_ACCOUNTS];
-    int accountCount;
+    int totalAccounts;
+    int lastAccNumber;
+
     Account* currentAccount;
     double cashAvailable;
 
-  
-    int searchAcc(string accNum);
-    void showMainMenu(); //
+    int findAccount(string accNum);
+    bool isValidPin(string p);
+    void showMainMenu();
 
 public:
-    ATM(double initialCash);
+    ATM(double initialCash = 0.0);
     ~ATM();
 
-
-
+    // Account management
     void addAccount(Account* account);
-    bool insertCard(std::string accNum);
-    bool enterPIN(std::string pin);
+    int getTotalAccounts() const { return totalAccounts; }
+
+    // User authentication
+    bool insertCard(string accNum);
+    bool enterPIN(string pin);
     void ejectCard();
 
-   
+    // User operations
+    void deposit();
     void withdraw(double amount);
-    void deposit();     
-    void checkBalance(); 
-    void changePIN();    
+    void checkBalance();
+    void changePIN();
     void fastCash();
     void miniStatement();
 
-    // System Entry Point
+    // Admin operations
+    void loadWithdrawals();
+    void saveWithdrawals();
+    void addNewAccount();
+    void adminPortal();
+
+    // System start
     void start();
 };
+
+#endif
