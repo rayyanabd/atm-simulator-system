@@ -7,22 +7,24 @@ CurrentAccount::CurrentAccount() : Account() {
     dailyLimit = 50000.0;
     dailyWithdrawn = 0.0;
     overdraftLimit = 10000.0;
-    accountNumber = "1001"; // Default for testing
+    accountNumber = "1001"; // HArd coded for testing
     pin = "1234";
     balance = 50000;
 }
 
 bool CurrentAccount::debit(double amount) {
-    // This logic ensures the cumulative daily withdrawal doesn't exceed 50,000
+
+    // ensures the cumulative daily withdrawal doesn't exceed 50,000
+
     if (dailyWithdrawn + amount > dailyLimit) {
         double remaining = dailyLimit - dailyWithdrawn;
-        cout << "[LIMIT] Daily withdrawal limit reached. Remaining for today: Rs. " << remaining << endl;
+        cout << "Daily withdrawal limit reached. Remaining for today: Rs. " << remaining << endl;
         return false;
     }
 
     // Balance check
     if (amount > (balance + overdraftLimit)) {
-        cout << "[BALANCE] Insufficient funds.\n";
+        cout << "Insufficient funds.\n";
         return false;
     }
 
