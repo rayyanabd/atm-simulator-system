@@ -150,10 +150,16 @@ void ATM::withdraw(double amount) {
         return;
     }
 
-    // currentAccount->debit will handle the Daily Limit check (50,000)
+    //  will handle the Daily Limit check (50,000)
+    
     if (currentAccount->debit(amount)) {
         cashAvailable -= amount;
         cout << "[SUCCESS] Please collect your cash: Rs. " << amount << endl;
+
+        // Phase 2 — transaction save
+        Transaction t(TransactionType::WITHDRAWAL, amount,
+            currentAccount->getBalance(), "ATM Withdrawal");
+        t.saveToFile(currentAccount->getAccountNumber());
     }
 }
 

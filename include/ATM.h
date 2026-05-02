@@ -13,13 +13,11 @@ private:
 
   
     int searchAcc(string accNum);
-    void showMainMenu(); //
+    void showMainMenu(); 
 
 public:
     ATM(double initialCash);
     ~ATM();
-
-
 
     void addAccount(Account* account);
     bool insertCard(std::string accNum);

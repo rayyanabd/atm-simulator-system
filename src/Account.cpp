@@ -48,7 +48,8 @@ void Account::addTransaction(TransactionType type, double amt, string desc) {
 
 void Account::printMiniStatement() {
     cout << "\n--- Mini Statement for Account: " << accountNumber << " ---\n";
-    if (transactionCount == 0) cout << "No recent transactions.\n";
+    if (transactionCount == 0) 
+        cout << "No recent transactions.\n";
     for (int i = 0; i < transactionCount; i++) {
         transactionHistory[i]->printTransaction();
     }

@@ -1,33 +1,68 @@
 #include "../include/CurrentAccount.h"
 #include <iostream>
-
+#include <fstream>
+#include <sstream>
 using namespace std;
 
-CurrentAccount::CurrentAccount() : Account() {
-    dailyLimit = 50000.0;
+CurrentAccount::CurrentAccount() {
+    dailyLimit = 25000.0;
     dailyWithdrawn = 0.0;
-    overdraftLimit = 10000.0;
-    accountNumber = "1001"; // Default for testing
-    pin = "1234";
-    balance = 50000;
+}
+
+bool CurrentAccount::checkAndResetDailyLimit(double amount) {
+    double remaining = dailyLimit - dailyWithdrawn;
+    if (amount > remaining) {
+        cout << "ERROR!! EXCEEDS DAILY LIMIT\n";
+        cout << "Remaining Today : Rs. " << remaining << "\n";
+        return false;
+    }
+    return true;
 }
 
 bool CurrentAccount::debit(double amount) {
-    // This logic ensures the cumulative daily withdrawal doesn't exceed 50,000
-    if (dailyWithdrawn + amount > dailyLimit) {
-        double remaining = dailyLimit - dailyWithdrawn;
-        cout << "[LIMIT] Daily withdrawal limit reached. Remaining for today: Rs. " << remaining << endl;
+    if (amount > balance) {
+        cout << "Insufficient balance!\n";
         return false;
     }
-
-    // Balance check
-    if (amount > (balance + overdraftLimit)) {
-        cout << "[BALANCE] Insufficient funds.\n";
+    if (!checkAndResetDailyLimit(amount))
         return false;
-    }
-
     balance -= amount;
     dailyWithdrawn += amount;
-    addTransaction(TransactionType::WITHDRAWAL, amount, "ATM Withdrawal");
+
+    // Phase 2 — save after every debit
+    saveDailyLimit();
     return true;
+}
+
+double CurrentAccount::getDailyWithdrawn() { return dailyWithdrawn; }
+double CurrentAccount::getRemainingLimit() { return dailyLimit - dailyWithdrawn; }
+string CurrentAccount::getAccountType() { return "Current Account"; }
+
+// Phase 2
+void CurrentAccount::saveDailyLimit() {
+    ofstream file("dailylimit.txt");
+    if (!file.is_open()) { 
+        cout << "Error saving!\n"; 
+        return; 
+    }
+    file << accountNumber << "," << dailyWithdrawn << "\n";  
+    file.close();
+}
+
+void CurrentAccount::loadDailyLimit() {
+    ifstream file("dailylimit.txt");
+    if (!file.is_open()) {
+        dailyWithdrawn = 0.0;
+        return; 
+    }
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string num, amount;
+        getline(ss, num, ',');
+        getline(ss, amount, ',');
+        if (num == accountNumber)
+            dailyWithdrawn = stod(amount);
+    }
+    file.close();
 }

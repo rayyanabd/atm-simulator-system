@@ -1,15 +1,19 @@
+
 #include "../include/ATM.h"
 #include "../include/CurrentAccount.h"
+using namespace std;
 
 int main() {
-    // 1. Create ATM with 100,000 cash
     ATM myATM(100000.0);
 
-    // 2. Add a test account (Since we haven't done file handling yet)
-    // Account details: Number="1001", PIN="1234", Balance=50000
-    myATM.addAccount(new CurrentAccount());
+    CurrentAccount* acc = new CurrentAccount();
+    acc->setAccountNumber("1001");
+    acc->setPin("1234");
+    acc->setBalance(50000.0);
 
-    // 3. Launch system
+    acc->loadDailyLimit();
+
+    myATM.addAccount(acc);
     myATM.start();
 
     return 0;

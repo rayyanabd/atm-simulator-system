@@ -1,18 +1,22 @@
+
 #pragma once
 #include <string>
 #include "Constants.h"
-using namespace std;
+    using namespace std;
 
-class Transaction {
-private:
-    TransactionType type;
-    double amount;
-    double balanceAfter;
-    std::string timestamp;
-    std::string description;
+    class Transaction {
+    private:
+        TransactionType type;
+        double amount;
+        double balanceAfter;
+        string description;
+        string accountNumber;
 
-public:
-    Transaction(TransactionType t, double amt, double bal, std::string desc);
-    void printTransaction() const;
-    std::string typeToString() const;
-};
+    public:
+        Transaction(TransactionType t, double amt, double bal, string desc);
+        void printTransaction() const;
+        string typeToString() const;
+
+        void saveToFile(string accNum);
+        static void loadFromFile();
+    };

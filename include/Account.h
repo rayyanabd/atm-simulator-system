@@ -36,6 +36,8 @@ public:
     bool isAccountLocked() const;
     void changePIN(std::string newPIN);
 
+    void setAccountNumber(string num) { accountNumber = num; }
+    void setPin(string p) { pin = p; }
 
     // Pure Virtual Functions (Must be implemented by children)
     virtual bool debit(double amount) = 0;

@@ -1,15 +1,24 @@
+
+
 #pragma once
 #include "Account.h"
+#include <fstream>
+#include <sstream>
+using namespace std;
 
 class CurrentAccount : public Account {
 private:
     double dailyLimit;
     double dailyWithdrawn;
-    double overdraftLimit;
 
 public:
-
     CurrentAccount();
-    bool debit(double amount) override;
-    std::string getAccountType() override { return "Current Account"; }
+    virtual bool debit(double amount) override;
+    string getAccountType();
+    void setDailyWithdrawn(double amount) { dailyWithdrawn = amount; }
+    void saveDailyLimit();
+    void loadDailyLimit();
+    double getDailyWithdrawn();
+    double getRemainingLimit();
+    bool checkAndResetDailyLimit(double amount);  
 };
