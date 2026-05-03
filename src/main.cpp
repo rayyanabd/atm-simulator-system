@@ -7,7 +7,7 @@ int main() {
     cout << "      WELCOME TO THE ATM SYSTEM     \n";
     cout << "====================================\n";
     do {
-        cout << "1.Create account           2. Existing account   3.Admin portal" << endl;
+        cout << "1.Create account           2. Existing account       3.Admin portal" << endl;
         cin >> accountexist;
         if (accountexist != 1 && accountexist != 2 && accountexist != 3)
         {

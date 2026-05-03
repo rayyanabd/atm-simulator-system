@@ -18,7 +18,14 @@ Transaction::Transaction(TransactionType t, double amt, double bal, string desc)
     timestamp = string(dt);
     if (!timestamp.empty()) timestamp.pop_back(); // Remove newline
 }
-
+// Phase 2 — save transaction to file
+void Transaction::saveToFile(string accNum) {
+    ofstream file("transactions.txt", ios::app);
+    if (!file.is_open()) { cout << "Error saving transaction!\n"; return; }
+    file << accNum << "," << typeToString() << "," << amount << ","
+        << balanceAfter << "," << description << "\n";
+    file.close();
+}
 string Transaction::typeToString() const {
     switch (type) {
     case TransactionType::WITHDRAWAL: return "WITHDRAW";

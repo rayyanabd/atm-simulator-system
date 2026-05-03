@@ -189,8 +189,7 @@ void ATM::readAccountdata()
             double balance = stod(balanceStr);
             bool lock = (lockstr == "1");
             Account* tempAcc = new CurrentAccount();
-            tempAcc->setdata(accNo, name, cnic, phone, balance, pin,lock);
-            currentAccount = tempAcc;
+            tempAcc->setdata(accNo, name, cnic, phone, balance, pin, lock);
             accounts[accountCount++] = tempAcc;
     }
 
@@ -284,14 +283,11 @@ void ATM::start() {
 
 bool ATM::insertCard(string accNum) {
     int temp = searchAcc(accNum);
-    if (temp >=0) {
+    if (temp!=-1) {
         currentAccount = accounts[temp];
         return true;
     }
-    if (temp == -2)
-    {
-        return true;
-    }
+    
     cout << "[ERROR] Card unrecognized or invalid account.\n";
     return false;
 }
@@ -322,6 +318,13 @@ void ATM::withdraw(double amount) {
     if (currentAccount->debit(amount)) {
         cashAvailable -= amount;
         cout << "[SUCCESS] Please collect your cash: Rs. " << amount << endl;
+
+        // Phase 2 — transaction save
+        Transaction t(TransactionType::WITHDRAWAL, amount,
+            currentAccount->getBalance(), "ATM Withdrawal");
+        t.saveToFile(currentAccount->getAccountNumber());
+
+        saveAccountsToFile();
     }
 }
 
@@ -397,6 +400,13 @@ void ATM::deposit() {
     currentAccount->credit(amount);
     cashAvailable += amount;
     cout << "Deposit complete.\n";
+    //saving to file
+    Transaction t(TransactionType::DEPOSIT, amount,
+        currentAccount->getBalance(), "ATM Deposit");
+    t.saveToFile(currentAccount->getAccountNumber());
+
+    saveAccountsToFile();
+    
 }
 
 void ATM::checkBalance() {

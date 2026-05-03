@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include<fstream>
 #include "Constants.h"
 using namespace std;
 
@@ -15,4 +16,5 @@ public:
     Transaction(TransactionType t, double amt, double bal, std::string desc);
     void printTransaction() const;
     std::string typeToString() const;
+    void saveToFile(string accNum);
 };
