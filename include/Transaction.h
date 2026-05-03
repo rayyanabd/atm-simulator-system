@@ -17,4 +17,5 @@ public:
     void printTransaction() const;
     std::string typeToString() const;
     void saveToFile(string accNum);
+     void loadFromFile();
 };

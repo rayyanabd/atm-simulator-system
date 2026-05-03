@@ -167,6 +167,41 @@ int ATM::searchAcc(string accNum) {
        
     return -1;
 }
+void ATM::readTransactiondata()
+{
+    ifstream file("transactions.txt");
+    if (!file.is_open()) {
+        cout << "No transaction history found.\n";
+        return;
+    }
+
+    string accnum, type, amt, bal, desc, time;
+    while (getline(file, accnum, ',') &&
+        getline(file, type, ',') &&
+        getline(file, amt, ',') &&
+        getline(file, bal, ',') &&
+        getline(file, desc, ',') &&
+        getline(file, time)
+        )
+    {
+        double tran_amount = stod(amt);
+        double tran_balance = stod(bal);
+        if (accnum != currentAccount->getAccountNumber()) {
+            continue; 
+        }
+
+        TransactionType ttype;
+
+        if (type == "DEPOSIT") ttype = TransactionType::DEPOSIT;
+        else if (type == "WITHDRAW") ttype = TransactionType::WITHDRAWAL;
+        else if (type == "FAST_CASH") ttype = TransactionType::FAST_CASH;
+        else ttype = TransactionType::WITHDRAWAL;
+
+        currentAccount->addTransaction(ttype, tran_amount, desc);
+       
+    }
+    file.close();
+}
 void ATM::readAccountdata()
 {
     accountCount = 0;//clearing old data
@@ -285,6 +320,7 @@ bool ATM::insertCard(string accNum) {
     int temp = searchAcc(accNum);
     if (temp!=-1) {
         currentAccount = accounts[temp];
+        readTransactiondata();
         return true;
     }
     

@@ -23,7 +23,7 @@ void Transaction::saveToFile(string accNum) {
     ofstream file("transactions.txt", ios::app);
     if (!file.is_open()) { cout << "Error saving transaction!\n"; return; }
     file << accNum << "," << typeToString() << "," << amount << ","
-        << balanceAfter << "," << description << "\n";
+        << balanceAfter << "," << description<<","<<timestamp << "\n";
     file.close();
 }
 string Transaction::typeToString() const {
@@ -40,4 +40,27 @@ void Transaction::printTransaction() const {
         << "| Rs." << setw(8) << amount
         << "| Bal: Rs." << setw(8) << balanceAfter
         << "| " << timestamp << endl;
+}
+
+// Phase 2 — load all transactions from file
+void Transaction::loadFromFile() {
+    ifstream file("transactions.txt");
+    if (!file.is_open()) {
+        cout << "No transaction history found.\n";
+        return;
+    }
+    string accnum, type, amt, bal, desc,time;
+    cout << "\n=== TRANSACTION HISTORY ===\n";
+    while (getline(file,accnum,',') &&
+        getline(file, type, ',')&&
+        getline(file, amt, ',')&&
+        getline(file, bal, ',')&&
+        getline(file, desc,',') &&
+        getline(file,time)
+        ) {
+        double amount = stod(amt);
+        double balance = stod(bal);
+        cout <<accnum << type << " | Rs." << amount << " | Bal: Rs." << balance << " | " << desc <<" | "<<time<<endl;
+    }
+    file.close();
 }

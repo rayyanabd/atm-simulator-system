@@ -27,6 +27,7 @@ public:
     bool enterPIN(std::string pin);
     void ejectCard();
 
+    void readTransactiondata();
     void readAccountdata();
     void withdraw(double amount);
     void deposit();     
