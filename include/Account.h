@@ -25,7 +25,7 @@ public:
     Account();
     virtual ~Account(); // Virtual destructor for memory safety
 
-    void setdata(string accno, string name, string cnic, string phoneno, double b, string pin);
+    void setdata(string accno, string name, string cnic, string phoneno, double b, string pin,bool lock);
     // Common Logic
     bool validatePIN(std::string p);
     void credit(double amount);
@@ -38,7 +38,11 @@ public:
     void setBalance(double b) { balance = b; } // For testing phase
     bool isAccountLocked() const;
     void changePIN(std::string newPIN);
-
+    void setLock(bool status);
+    string getname();
+    string getCNIC();
+    string getPIN();
+    string getPhone();
 
     // Pure Virtual Functions (Must be implemented by children)
     virtual bool debit(double amount) = 0;

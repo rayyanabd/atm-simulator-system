@@ -24,6 +24,129 @@ ATM::~ATM() {
     }
 
 }
+void ATM::adminPortal()
+{
+    string pin;
+    cout << "Enter admin PIN: ";
+    cin >> pin;
+
+    if (pin != ADMIN_PIN)
+    {
+        cout << "Wrong admin PIN.\n";
+        return;
+    }
+
+    readAccountdata();
+
+    int choice;
+    do {
+        cout << "\n===== ADMIN PANEL =====\n";
+        cout << "1. View Accounts\n";
+        cout << "2. Lock/Unlock Account\n";
+        cout << "3. Delete Account\n";
+        cout << "4. Save & Exit\n";
+        cout << "Choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1: viewAccounts(); break;
+        case 2: toggleLock(); break;
+        case 3: deleteAccount(); break;
+        case 4: saveAccountsToFile(); break;
+        }
+    } while (choice != 4);
+
+}
+void ATM::deleteAccount()
+{
+    int flag = -1;
+    string accNo;
+    cout << "Enter account to delete: ";
+    cin >> accNo;
+
+    for (int i = 0; i < accountCount; i++)
+    {
+        if (accounts[i]->getAccountNumber() == accNo)
+        {
+            delete accounts[i];
+
+            for (int j = i; j < accountCount - 1; j++)
+            {
+                accounts[j] = accounts[j + 1];
+            }
+            flag = 1;
+            accountCount--;
+            cout << "Account deleted.\n";
+            
+        }
+    }
+    if(flag==-1)
+    cout << "Account not found.\n";
+}
+void ATM::saveAccountsToFile()
+{
+    ofstream outfile("account.txt");
+
+    for (int i = 0; i < accountCount; i++)
+    {
+        outfile << accounts[i]->getAccountNumber() << ","
+            << accounts[i]->getname() << ","
+            << accounts[i]->getCNIC() << ","
+            << accounts[i]->getPhone() << ","
+            << accounts[i]->getBalance() << ","
+            << accounts[i]->getPIN() << ","
+            << accounts[i]->isAccountLocked()
+            << endl;
+    }
+
+    cout << "File updated successfully.\n";
+}
+void ATM::toggleLock()
+{
+    cout << "Total accounts: " << accountCount << endl;
+    string accNo;
+    cout << "Enter account number: ";
+    cin >> accNo;
+
+    for (int i = 0; i < accountCount; i++)
+    {
+        if (accounts[i]->getAccountNumber() == accNo)
+        {
+            bool status = accounts[i]->isAccountLocked();
+            accounts[i]->setLock(!status);
+
+            cout << "Account is now "
+                << (accounts[i]->isAccountLocked() ? "LOCKED" : "UNLOCKED") << endl;
+            return;
+        }
+    }
+
+    cout << "Account not found.\n";
+}
+
+void ATM::viewAccounts()
+{
+    cout << "\n--- All Accounts ---\n";
+
+    for (int i = 0; i < accountCount; i++)
+    {
+        if (accounts[i] != nullptr)
+        {
+            cout << accounts[i]->getAccountNumber()
+                << "\tRs. " << accounts[i]->getBalance()
+                <<"\tAccount Status:  ";
+            if (accounts[i]->isAccountLocked())
+            {
+                cout << "Locked" << endl;
+            }
+            else {
+                cout << "Active Status" << endl;
+            }
+        }
+    }
+    cout << "[INFO] Accounts loaded: " << accountCount << endl;
+}
 
 void ATM::addAccount(Account* acc) {
     if (accountCount < MAX_ACCOUNTS) {
@@ -37,34 +160,41 @@ int ATM::searchAcc(string accNum) {
         if (accounts[i]->getAccountNumber() == accNum) return i;
     }
    //file check
-        string accNo, name, cnic, phone,pin;
-        double balanceStr;
-        ifstream infile("account.txt");
-        if (!infile) {
-            cout << "File not found!\n";
-            return -1;
-        }
+    readAccountdata();
+    for (int i = 0; i < accountCount; i++) {
+        if (accounts[i]->getAccountNumber() == accNum) return i;
+    }
+       
+    return -1;
+}
+void ATM::readAccountdata()
+{
+    accountCount = 0;//clearing old data
+    string accNo, name, cnic, phone, pin, balanceStr, lockstr;
+    ifstream infile("account.txt");
+    if (!infile) {
+        cout << "File not found!\n";
+    }
+    else
         while (getline(infile, accNo, ',') &&
             getline(infile, name, ',') &&
             getline(infile, cnic, ',') &&
             getline(infile, phone, ',') &&
-            infile >> balanceStr  &&
-            infile.ignore(1, ',') &&
-            getline(infile, pin)
+            getline(infile, balanceStr, ',') &&
+            getline(infile, pin, ',') &&
+            getline(infile, lockstr)
             )
-        {
-            if (accNo == accNum)
-            {
-                Account* tempAcc = new CurrentAccount();
-                tempAcc->setdata(accNo, name, cnic, phone, balanceStr, pin);
-                currentAccount = tempAcc;
-                accounts[accountCount++] = tempAcc;
-                return -2;
-            }
-        }
-    return -1;
-}
+            
+    {
+            double balance = stod(balanceStr);
+            bool lock = (lockstr == "1");
+            Account* tempAcc = new CurrentAccount();
+            tempAcc->setdata(accNo, name, cnic, phone, balance, pin,lock);
+            currentAccount = tempAcc;
+            accounts[accountCount++] = tempAcc;
+    }
 
+}
 void ATM::start() {
     int choice;
     bool systemRunning = true;

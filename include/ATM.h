@@ -11,7 +11,7 @@ private:
     int accountCount;
     Account* currentAccount;
     double cashAvailable;
-
+  
     int searchAcc(string accNum);
     void showMainMenu(); //
 
@@ -21,20 +21,26 @@ public:
     ~ATM();
 
 
-
+    //account management
     void addAccount(Account* account);
     bool insertCard(std::string accNum);
     bool enterPIN(std::string pin);
     void ejectCard();
 
-   
+    void readAccountdata();
     void withdraw(double amount);
     void deposit();     
     void checkBalance(); 
     void changePIN();    
     void fastCash();
-    void miniStatement();
 
     // System Entry Point
     void start();
+
+    //admin functions
+    void adminPortal();
+    void viewAccounts();
+   void toggleLock();
+   void deleteAccount();
+     void saveAccountsToFile(); 
 };

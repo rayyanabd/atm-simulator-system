@@ -35,12 +35,16 @@ void  CurrentAccount::createAccount()
 
         cout << "Account Created successfully!!" << endl;
 
-        ofstream outfile("account.txt", ios::app);
-        outfile << accountNumber << "," << accountHolder <<"," << CNIC <<"," << phone_number<<"," <<balance<<"," << pin << endl;
-        outfile.close();
+        saveAccountData();
+       
 }
 
-
+void CurrentAccount::saveAccountData()
+{
+    ofstream outfile("account.txt", ios::app);
+    outfile << accountNumber << "," << accountHolder << "," << CNIC << "," << phone_number << "," << balance << "," << pin<<","<<isLocked << endl;
+    outfile.close();
+}
 bool CurrentAccount::debit(double amount) {
     // This logic ensures the cumulative daily withdrawal doesn't exceed 50,000
     if (dailyWithdrawn + amount > dailyLimit) {

@@ -7,13 +7,13 @@ int main() {
     cout << "      WELCOME TO THE ATM SYSTEM     \n";
     cout << "====================================\n";
     do {
-        cout << "1.Create account           2. Existing account" << endl;
+        cout << "1.Create account           2. Existing account   3.Admin portal" << endl;
         cin >> accountexist;
-        if (accountexist != 1 && accountexist != 2)
+        if (accountexist != 1 && accountexist != 2 && accountexist != 3)
         {
-            cout << "Error! enter 1 or 2" << endl;
+            cout << "Error! enter 1 or 2 or 3" << endl;
         }
-    } while (accountexist != 1 && accountexist != 2);
+    } while (accountexist != 1 && accountexist != 2 && accountexist != 3);
 
     if (accountexist == 1)
     {
@@ -25,12 +25,16 @@ int main() {
         // 3. Launch system
         myATM.start();
     }
-    else
+    if (accountexist == 2)
     {
         ATM myATM;
         myATM.start();
     }
-
+    if (accountexist == 3)
+    {
+        ATM myATM;
+        myATM.adminPortal();
+    }
 
     
 
