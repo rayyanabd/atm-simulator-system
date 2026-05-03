@@ -320,7 +320,7 @@ bool ATM::insertCard(string accNum) {
     int temp = searchAcc(accNum);
     if (temp!=-1) {
         currentAccount = accounts[temp];
-        readTransactiondata();
+       // readTransactiondata();
         return true;
     }
     
