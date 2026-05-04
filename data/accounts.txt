@@ -1,0 +1,6 @@
+Current Account|1001|Default Current User|3520212345671|1234|34000|1|3|21000
+Savings Account|1002|Default Savings User|3520212345672|4321|25000|1|3|0
+Current Account|1003|Customer 1003|3520185450451|3000|0|0|0|0
+Current Account|1004|Customer 1004|8520185450451|3000|0|0|0|0
+Current Account|1005|Customer 1005|3927047044343|1234|0|0|0|0
+Current Account|1006|Customer 1006|3453345434545|1000|0|0|0|0

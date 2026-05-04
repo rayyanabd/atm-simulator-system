@@ -19,13 +19,40 @@ Transaction::Transaction(TransactionType t, double amt, double bal, string desc)
     if (!timestamp.empty()) timestamp.pop_back(); // Remove newline
 }
 
-string Transaction::typeToString() const {
-    switch (type) {
-    case TransactionType::WITHDRAWAL: return "WITHDRAW";
-    case TransactionType::DEPOSIT:    return "DEPOSIT";
-    case TransactionType::FAST_CASH:  return "FAST_CASH";
+Transaction::Transaction(TransactionType t, double amt, double bal, string time, string desc) {
+    type = t;
+    amount = amt;
+    balanceAfter = bal;
+    timestamp = time;
+    description = desc;
+}
+
+string Transaction::typeToString(TransactionType value) {
+    switch (value) {
+    case TransactionType::WITHDRAWAL: return "WITHDRAWAL";
+    case TransactionType::DEPOSIT: return "DEPOSIT";
+    case TransactionType::FAST_CASH: return "FAST_CASH";
+    case TransactionType::TRANSFER: return "TRANSFER";
+    case TransactionType::PIN_CHANGE: return "PIN_CHANGE";
+    case TransactionType::ACCOUNT_CREATED: return "ACCOUNT_CREATED";
+    case TransactionType::BALANCE_INQUIRY: return "BALANCE_INQUIRY";
     default: return "OTHER";
     }
+}
+
+string Transaction::typeToString() const {
+    return typeToString(type);
+}
+
+TransactionType Transaction::stringToType(const string& value) {
+    if (value == "WITHDRAW" || value == "WITHDRAWAL") return TransactionType::WITHDRAWAL;
+    if (value == "DEPOSIT") return TransactionType::DEPOSIT;
+    if (value == "FAST_CASH") return TransactionType::FAST_CASH;
+    if (value == "TRANSFER") return TransactionType::TRANSFER;
+    if (value == "PIN_CHANGE") return TransactionType::PIN_CHANGE;
+    if (value == "ACCOUNT_CREATED") return TransactionType::ACCOUNT_CREATED;
+    if (value == "BALANCE_INQUIRY") return TransactionType::BALANCE_INQUIRY;
+    return TransactionType::TRANSFER;
 }
 
 void Transaction::printTransaction() const {

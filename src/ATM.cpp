@@ -1,27 +1,115 @@
 #include "../include/ATM.h"
+#include "../include/CurrentAccount.h"
+#include "../include/SavingsAccount.h"
+#include <algorithm>
+#include <cctype>
+#include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
+#ifndef ATM_DEFAULT_DATA_DIR
+#define ATM_DEFAULT_DATA_DIR "data"
+#endif
+
+namespace {
+    vector<string> splitLine(const string& line, char delimiter) {
+        vector<string> parts;
+        string item;
+        stringstream input(line);
+        while (getline(input, item, delimiter)) {
+            parts.push_back(item);
+        }
+        return parts;
+    }
+
+    bool isDigitsOnly(const string& value) {
+        return !value.empty() && all_of(value.begin(), value.end(), [](unsigned char ch) {
+            return ch >= '0' && ch <= '9';
+        });
+    }
+
+    string normalizeAccountType(const string& value) {
+        string normalized = value;
+        transform(normalized.begin(), normalized.end(), normalized.begin(), [](unsigned char ch) {
+            return static_cast<char>(tolower(ch));
+        });
+        if (normalized.find("saving") != string::npos) {
+            return "Savings";
+        }
+        return "Current";
+    }
+}
 
 
-ATM::ATM(double initialCash) {
+ATM::ATM(double initialCash, string dataDir) {
     cashAvailable = initialCash;
     accountCount = 0;
     currentAccount = nullptr;
+    dataDirectory = dataDir.empty() ? ATM_DEFAULT_DATA_DIR : dataDir;
     for (int i = 0; i < MAX_ACCOUNTS; i++) accounts[i] = nullptr;
 }
 
 ATM::~ATM() {
+    saveData();
+    clearAccounts();
+}
+
+void ATM::clearAccounts() {
     for (int i = 0; i < accountCount; i++) {
         delete accounts[i];
+        accounts[i] = nullptr;
     }
+    accountCount = 0;
+    currentAccount = nullptr;
 }
 
 void ATM::addAccount(Account* acc) {
+    if (acc == nullptr) {
+        return;
+    }
+
     if (accountCount < MAX_ACCOUNTS) {
         accounts[accountCount++] = acc;
+        return;
     }
+
+    delete acc;
+}
+
+string ATM::accountsFilePath() const {
+    return dataDirectory + "/accounts.txt";
+}
+
+string ATM::transactionsFilePath() const {
+    return dataDirectory + "/transactions.txt";
+}
+
+void ATM::seedDefaultAccounts() {
+    addAccount(new CurrentAccount());
+    addAccount(new SavingsAccount());
+    if (accounts[0] != nullptr) {
+        accounts[0]->addTransaction(TransactionType::ACCOUNT_CREATED, 0.0, "Default account loaded");
+    }
+    if (accounts[1] != nullptr) {
+        accounts[1]->addTransaction(TransactionType::ACCOUNT_CREATED, 0.0, "Default account loaded");
+    }
+}
+
+string ATM::generateAccountNumber() const {
+    int highest = STARTING_ACC_NUM - 1;
+    for (int i = 0; i < accountCount; i++) {
+        try {
+            highest = max(highest, stoi(accounts[i]->getAccountNumber()));
+        }
+        catch (...) {
+        }
+    }
+
+    return to_string(highest + 1);
 }
 
 Account* ATM::getCurrentAccount() {
@@ -37,6 +125,33 @@ int ATM::searchAcc(string accNum) {
         if (accounts[i]->getAccountNumber() == accNum) return i;
     }
     return -1;
+}
+
+Account* ATM::findAccountByLastFourDigits(string lastFourDigits) const {
+    if (lastFourDigits.length() != 4 || !isDigitsOnly(lastFourDigits)) {
+        return nullptr;
+    }
+
+    for (int i = 0; i < accountCount; i++) {
+        string accountNumber = accounts[i]->getAccountNumber();
+        if (accountNumber.length() >= 4 &&
+            accountNumber.substr(accountNumber.length() - 4) == lastFourDigits) {
+            return accounts[i];
+        }
+    }
+
+    return nullptr;
+}
+
+bool ATM::insertCardByLastFourDigits(string lastFourDigits) {
+    Account* account = findAccountByLastFourDigits(lastFourDigits);
+    if (account == nullptr) {
+        cout << "[ERROR] Account last four digits were not found.\n";
+        return false;
+    }
+
+    currentAccount = account;
+    return true;
 }
 
 void ATM::start() {
@@ -74,7 +189,7 @@ void ATM::start() {
                 if (insertCard(accNum)) {
                     // Check if account is already locked before proceeding
                     if (currentAccount->isAccountLocked()) {
-                        cout << "ERROR: This account is currently locked. Please contact Admin.\n";
+                        cout << LOCKED_ACCOUNT_MESSAGE << "\n";
                         sessionActive = true;
                         break;
                     }
@@ -142,13 +257,41 @@ bool ATM::enterPIN(string pin) {
         return true;
     }
     cout << "[DENIED] Incorrect PIN.\n";
-    currentAccount = nullptr;
+    return false;
+}
+
+bool ATM::authenticatePin(string pin, string& message) {
+    if (currentAccount == nullptr) {
+        message = "No account is selected.";
+        return false;
+    }
+
+    if (currentAccount->isAccountLocked()) {
+        message = LOCKED_ACCOUNT_MESSAGE;
+        return false;
+    }
+
+    if (currentAccount->validatePIN(pin)) {
+        message = "Access granted.";
+        saveData();
+        return true;
+    }
+
+    if (currentAccount->isAccountLocked()) {
+        message = LOCKED_ACCOUNT_MESSAGE;
+        saveData();
+        return false;
+    }
+
+    int remaining = MAX_PIN_ATTEMPTS - currentAccount->getLoginAttempts();
+    message = "Incorrect PIN. Attempts remaining: " + to_string(remaining);
+    saveData();
     return false;
 }
 
 void ATM::withdraw(double amount) {
     
-    if (amount > 20000) {
+    if (amount > ATM_WITHDRAWAL_TRANSACTION_LIMIT) {
         cout << "DENIED: Maximum withdrawal per transaction is Rs. 20,000.\n";
         return;
     }
@@ -166,23 +309,58 @@ void ATM::withdraw(double amount) {
 }
 
 bool ATM::withdrawAmount(double amount) {
-    if (currentAccount == nullptr || amount <= 0) {
+    string message;
+    return withdrawAmount(amount, message, false);
+}
+
+bool ATM::withdrawAmount(double amount, string& message, bool fastCashTransaction) {
+    if (currentAccount == nullptr) {
+        message = "Please select and authenticate an account first.";
         return false;
     }
 
-    if (amount > 20000) {
+    if (currentAccount->isAccountLocked()) {
+        message = LOCKED_ACCOUNT_MESSAGE;
+        return false;
+    }
+
+    if (!std::isfinite(amount)) {
+        message = "Please enter a valid numeric amount.";
+        return false;
+    }
+
+    if (amount <= 0) {
+        message = "Withdrawal amount must be greater than zero.";
+        return false;
+    }
+
+    if (fmod(amount, 500.0) != 0.0) {
+        message = "Withdrawal amount must be a multiple of Rs. 500.";
+        return false;
+    }
+
+    if (amount > ATM_WITHDRAWAL_TRANSACTION_LIMIT) {
+        message = "Maximum withdrawal per transaction is Rs. 20,000.";
         return false;
     }
 
     if (amount > cashAvailable) {
+        message = "ATM has insufficient cash reserve.";
         return false;
     }
 
-    if (currentAccount->debit(amount)) {
+    TransactionType type = fastCashTransaction ? TransactionType::FAST_CASH : TransactionType::WITHDRAWAL;
+    string description = fastCashTransaction ? "Fast Cash Withdrawal" : "ATM Withdrawal";
+    if (currentAccount->debit(amount, type, description)) {
         cashAvailable -= amount;
+        saveData();
+        message = "Please collect your cash.";
         return true;
     }
 
+    message = currentAccount->getLastError().empty()
+        ? "Withdrawal denied by account limits or available balance."
+        : currentAccount->getLastError();
     return false;
 }
 
@@ -244,14 +422,18 @@ void ATM::deposit() {
     cout << "Enter amount to deposit: Rs. ";
     cin >> amount;
 
-
-    if (amount > 50000) {
-        cout << "Error: Maximum deposit limit per transaction is Rs. 50,000.\n";
+    if (currentAccount == nullptr) {
+        cout << "Please authenticate before depositing cash.\n";
         return;
     }
 
-    if (amount <= 0) {
-        cout << "Invalid amount.\n";
+    if (currentAccount->isAccountLocked()) {
+        cout << LOCKED_ACCOUNT_MESSAGE << "\n";
+        return;
+    }
+
+    if (!std::isfinite(amount) || amount <= 0) {
+        cout << "Deposit amount must be greater than zero.\n";
         return;
     }
 
@@ -261,16 +443,35 @@ void ATM::deposit() {
 }
 
 bool ATM::depositAmount(double amount) {
+    string message;
+    return depositAmount(amount, message);
+}
+
+bool ATM::depositAmount(double amount, string& message) {
     if (currentAccount == nullptr) {
+        message = "Please select and authenticate an account first.";
         return false;
     }
 
-    if (amount > 50000 || amount <= 0) {
+    if (currentAccount->isAccountLocked()) {
+        message = LOCKED_ACCOUNT_MESSAGE;
+        return false;
+    }
+
+    if (!std::isfinite(amount)) {
+        message = "Please enter a valid numeric amount.";
+        return false;
+    }
+
+    if (amount <= 0) {
+        message = "Deposit amount must be greater than zero.";
         return false;
     }
 
     currentAccount->credit(amount);
     cashAvailable += amount;
+    saveData();
+    message = "Deposit complete.";
     return true;
 }
 
@@ -293,7 +494,7 @@ void ATM::changePIN() {
 
         
         if (newPin.length() != 4) {
-            cout << "Error: PIN must be exactly 4 digits.\n";
+            cout << "PIN must be exactly 4 digits.\n";
             return;
         }
 
@@ -311,6 +512,210 @@ void ATM::changePIN() {
     else {
         cout << "Incorrect current PIN.\n";
     }
+}
+
+void ATM::miniStatement() {
+    if (currentAccount != nullptr) {
+        currentAccount->printMiniStatement();
+    }
+}
+
+vector<Transaction> ATM::getCurrentTransactions(int count) const {
+    if (currentAccount == nullptr || currentAccount->isAccountLocked()) {
+        return {};
+    }
+    return currentAccount->getLastTransactions(count);
+}
+
+bool ATM::createAccount(string cnicNo, string newPIN, string accountType, string& generatedAccountNumber, string& message) {
+    if (accountCount >= MAX_ACCOUNTS) {
+        message = "Account limit reached.";
+        return false;
+    }
+
+    if (cnicNo.length() != 13 || !isDigitsOnly(cnicNo)) {
+        message = "CNIC must contain exactly 13 numeric digits.";
+        return false;
+    }
+
+    if (newPIN.length() != PIN_LENGTH || !isDigitsOnly(newPIN)) {
+        message = "PIN must be exactly 4 numeric digits.";
+        return false;
+    }
+
+    for (int i = 0; i < accountCount; i++) {
+        if (accounts[i]->getCnic() == cnicNo) {
+            message = "An account already exists for this CNIC.";
+            return false;
+        }
+    }
+
+    generatedAccountNumber = generateAccountNumber();
+    string holder = "Customer " + generatedAccountNumber;
+    Account* account = nullptr;
+    string normalizedType = normalizeAccountType(accountType);
+
+    if (normalizedType == "Savings") {
+        account = new SavingsAccount(generatedAccountNumber, holder, 0.0, newPIN, cnicNo);
+    }
+    else {
+        account = new CurrentAccount(generatedAccountNumber, holder, 0.0, newPIN, cnicNo);
+    }
+
+    account->addTransaction(TransactionType::ACCOUNT_CREATED, 0.0, "Account Created");
+    addAccount(account);
+    saveData();
+    message = "Account created successfully.";
+    return true;
+}
+
+bool ATM::loadData() {
+    clearAccounts();
+    filesystem::create_directories(dataDirectory);
+
+    ifstream accountFile(accountsFilePath());
+    if (!accountFile.is_open()) {
+        seedDefaultAccounts();
+        saveData();
+        return false;
+    }
+
+    string line;
+    while (getline(accountFile, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        vector<string> fields = splitLine(line, '|');
+        if (fields.size() < 9) {
+            continue;
+        }
+
+        try {
+            string type = normalizeAccountType(fields[0]);
+            string accountNumber = fields[1];
+            string holder = fields[2];
+            string cnicValue = fields[3];
+            string pinValue = fields[4];
+            double accountBalance = stod(fields[5]);
+            bool locked = stoi(fields[6]) != 0;
+            int attempts = stoi(fields[7]);
+            double withdrawnToday = stod(fields[8]);
+
+            Account* account = nullptr;
+            if (type == "Savings") {
+                account = new SavingsAccount(accountNumber, holder, accountBalance, pinValue, cnicValue, withdrawnToday);
+            }
+            else {
+                account = new CurrentAccount(accountNumber, holder, accountBalance, pinValue, cnicValue, withdrawnToday);
+            }
+
+            account->setSecurityState(locked, attempts);
+            addAccount(account);
+        }
+        catch (...) {
+            continue;
+        }
+    }
+
+    accountFile.close();
+
+    if (accountCount == 0) {
+        seedDefaultAccounts();
+        saveData();
+        return false;
+    }
+
+    ifstream transactionFile(transactionsFilePath());
+    while (transactionFile.is_open() && getline(transactionFile, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        vector<string> fields = splitLine(line, '|');
+        if (fields.size() < 6) {
+            continue;
+        }
+
+        int accountIndex = searchAcc(fields[0]);
+        if (accountIndex == -1) {
+            continue;
+        }
+
+        try {
+            Transaction transaction(
+                Transaction::stringToType(fields[2]),
+                stod(fields[3]),
+                stod(fields[4]),
+                fields[1],
+                fields[5]);
+            accounts[accountIndex]->restoreTransaction(transaction);
+        }
+        catch (...) {
+            continue;
+        }
+    }
+
+    return true;
+}
+
+bool ATM::saveData() const {
+    filesystem::create_directories(dataDirectory);
+
+    ofstream accountFile(accountsFilePath());
+    if (!accountFile.is_open()) {
+        return false;
+    }
+
+    for (int i = 0; i < accountCount; i++) {
+        accountFile << accounts[i]->toStorageRecord() << '\n';
+    }
+
+    ofstream transactionFile(transactionsFilePath());
+    if (!transactionFile.is_open()) {
+        return false;
+    }
+
+    for (int i = 0; i < accountCount; i++) {
+        vector<Transaction> transactions = accounts[i]->getLastTransactions(MAX_HISTORY);
+        for (const Transaction& transaction : transactions) {
+            transactionFile << accounts[i]->getAccountNumber() << '|'
+                << transaction.getTimestamp() << '|'
+                << Transaction::typeToString(transaction.getType()) << '|'
+                << transaction.getAmount() << '|'
+                << transaction.getBalanceAfter() << '|'
+                << transaction.getDescription() << '\n';
+        }
+    }
+
+    return true;
+}
+
+bool ATM::changeCurrentPIN(string currentPIN, string newPIN, string& message) {
+    if (currentAccount == nullptr) {
+        message = "Please authenticate first.";
+        return false;
+    }
+
+    if (currentAccount->isAccountLocked()) {
+        message = LOCKED_ACCOUNT_MESSAGE;
+        return false;
+    }
+
+    if (!currentAccount->matchesPIN(currentPIN)) {
+        message = "Current PIN is incorrect.";
+        return false;
+    }
+
+    if (newPIN.length() != PIN_LENGTH || !isDigitsOnly(newPIN)) {
+        message = "New PIN must be exactly 4 numeric digits.";
+        return false;
+    }
+
+    currentAccount->changePIN(newPIN);
+    saveData();
+    message = "PIN updated successfully.";
+    return true;
 }
 
 void ATM::ejectCard() {

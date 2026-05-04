@@ -13,6 +13,14 @@ private:
 
 public:
     Transaction(TransactionType t, double amt, double bal, std::string desc);
+    Transaction(TransactionType t, double amt, double bal, std::string time, std::string desc);
     void printTransaction() const;
+    TransactionType getType() const { return type; }
+    double getAmount() const { return amount; }
+    double getBalanceAfter() const { return balanceAfter; }
+    std::string getTimestamp() const { return timestamp; }
+    std::string getDescription() const { return description; }
     std::string typeToString() const;
+    static std::string typeToString(TransactionType type);
+    static TransactionType stringToType(const std::string& value);
 };

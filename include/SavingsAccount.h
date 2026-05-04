@@ -2,9 +2,15 @@
 #include "Account.h"
 
 class SavingsAccount : public Account {
+private:
+    double dailyLimit;
+    double dailyWithdrawn;
+
 public:
-    SavingsAccount(int accNum, std::string nm, double bal, std::string p)
-        : Account(accNum, nm, bal, p) {
-    }
-    // Add savings specific methods here
+    SavingsAccount();
+    SavingsAccount(std::string accNum, std::string nm, double bal, std::string p, std::string cnicNo = "", double withdrawnToday = 0.0);
+    bool debit(double amount) override;
+    bool debit(double amount, TransactionType type, const std::string& desc) override;
+    std::string getAccountType() const override { return "Savings Account"; }
+    double getDailyWithdrawn() const override { return dailyWithdrawn; }
 };
