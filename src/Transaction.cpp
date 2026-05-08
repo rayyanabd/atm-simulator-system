@@ -51,46 +51,4 @@ void Transaction::printTransaction() const {
         << "| Bal: Rs." << setw(8) << balanceAfter
         << "| " << timestamp << endl;
 }
-TransactionType Transaction::stringtoType(string s)
-{
-    if (s == "WITHDRAW")
-    {
-        return TransactionType::WITHDRAWAL;
-    }
-     if (s == "DEPOSIT")
-    {
-        return TransactionType::DEPOSIT;
-    }
-     if (s == "FAST_CASH")
-     {
-         return TransactionType::FAST_CASH;
 
-     }
-}
-// Phase 2 — load all transactions from file
-void Transaction::loadFromFile() {
-    ifstream file("transactions.txt");
-    if (!file.is_open()) {
-        cout << "No transaction history found.\n";
-        return;
-    }
-    string accnum, amt,type, bal, desc,time;
-   
-    cout << "\n=== TRANSACTION HISTORY ===\n";
-    while (getline(file,accnum,',') &&
-        getline(file, type, ',')&&
-        getline(file, amt, ',')&&
-        getline(file, bal, ',')&&
-        getline(file, desc,',') &&
-        getline(file,time)
-        ) {
-        double amount = stod(amt);
-        double balance = stod(bal);
-
-        //converting string to type
-        TransactionType t = stringtoType(type);
-        
-        
-    }
-    file.close();
-}
