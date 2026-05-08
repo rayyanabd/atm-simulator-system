@@ -77,9 +77,24 @@ void Account::credit(double amount) {
 }
 
 void Account::addTransaction(TransactionType type, double amt, string desc) {
-    if (transactionCount < MAX_HISTORY) {
-        transactionHistory[transactionCount++] = new Transaction(type, amt, balance, desc);
-    }
+
+    if (transactionCount >= MAX_HISTORY)
+        return;
+
+    transactionHistory[transactionCount] =
+        new Transaction(type, amt, balance, desc);
+    transactionHistory[transactionCount]->saveToFile(accountNumber);
+    transactionCount++;
+}
+void Account::addTransaction(TransactionType type, double amt, std::string desc, std::string time)
+{
+    if (transactionCount >= MAX_HISTORY)
+        return;
+
+    transactionHistory[transactionCount] =
+        new Transaction(type, amt, balance, desc,time);
+
+    transactionCount++;
 }
 
 void Account::printMiniStatement() {

@@ -17,8 +17,7 @@ private:
 
 public:
     ATM();
-    ATM(double initialCash);
-    ~ATM();
+       ~ATM();
 
 
     //account management
@@ -34,7 +33,6 @@ public:
     void checkBalance(); 
     void changePIN();    
     void fastCash();
-
     // System Entry Point
     void start();
 

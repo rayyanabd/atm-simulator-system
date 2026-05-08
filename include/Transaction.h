@@ -14,8 +14,10 @@ private:
 
 public:
     Transaction(TransactionType t, double amt, double bal, std::string desc);
+    Transaction(TransactionType t, double amt, double bal, std::string desc, std::string time);
     void printTransaction() const;
     std::string typeToString() const;
+    TransactionType stringtoType(std:: string s);
     void saveToFile(string accNum);
      void loadFromFile();
 };

@@ -30,6 +30,7 @@ public:
     bool validatePIN(std::string p);
     void credit(double amount);
     void addTransaction(TransactionType type, double amt, std::string desc);
+    void addTransaction(TransactionType type, double amt, std::string desc, std::string time);
     void printMiniStatement();
 
     // Getters

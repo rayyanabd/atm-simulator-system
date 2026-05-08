@@ -11,12 +11,6 @@ ATM::ATM()
     for (int i = 0; i < MAX_ACCOUNTS; i++) accounts[i] = nullptr;
 }
 
-ATM::ATM(double initialCash) {
-    cashAvailable = initialCash;
-    accountCount = 0;
-    currentAccount = nullptr;
-    for (int i = 0; i < MAX_ACCOUNTS; i++) accounts[i] = nullptr;
-}
 
 ATM::~ATM() {
     for (int i = 0; i < accountCount; i++) {
@@ -155,10 +149,6 @@ void ATM::addAccount(Account* acc) {
 }
 
 int ATM::searchAcc(string accNum) {
-
-    for (int i = 0; i < accountCount; i++) {
-        if (accounts[i]->getAccountNumber() == accNum) return i;
-    }
    //file check
     readAccountdata();
     for (int i = 0; i < accountCount; i++) {
@@ -186,25 +176,22 @@ void ATM::readTransactiondata()
     {
         double tran_amount = stod(amt);
         double tran_balance = stod(bal);
-        if (accnum != currentAccount->getAccountNumber()) {
-            continue; 
+        if (accnum == currentAccount->getAccountNumber()) {
+            TransactionType ttype;
+
+            if (type == "DEPOSIT") ttype = TransactionType::DEPOSIT;
+            else if (type == "WITHDRAW") ttype = TransactionType::WITHDRAWAL;
+            else if (type == "FAST_CASH") ttype = TransactionType::FAST_CASH;
+            else ttype = TransactionType::WITHDRAWAL;
+
+            currentAccount->addTransaction(ttype, tran_amount, desc,time);
         }
-
-        TransactionType ttype;
-
-        if (type == "DEPOSIT") ttype = TransactionType::DEPOSIT;
-        else if (type == "WITHDRAW") ttype = TransactionType::WITHDRAWAL;
-        else if (type == "FAST_CASH") ttype = TransactionType::FAST_CASH;
-        else ttype = TransactionType::WITHDRAWAL;
-
-        currentAccount->addTransaction(ttype, tran_amount, desc);
        
     }
     file.close();
 }
 void ATM::readAccountdata()
 {
-    accountCount = 0;//clearing old data
     string accNo, name, cnic, phone, pin, balanceStr, lockstr;
     ifstream infile("account.txt");
     if (!infile) {
@@ -320,7 +307,8 @@ bool ATM::insertCard(string accNum) {
     int temp = searchAcc(accNum);
     if (temp!=-1) {
         currentAccount = accounts[temp];
-       // readTransactiondata();
+        cashAvailable = currentAccount->getBalance();
+       readTransactiondata();
         return true;
     }
     
@@ -355,12 +343,9 @@ void ATM::withdraw(double amount) {
         cashAvailable -= amount;
         cout << "[SUCCESS] Please collect your cash: Rs. " << amount << endl;
 
-        // Phase 2 — transaction save
-        Transaction t(TransactionType::WITHDRAWAL, amount,
-            currentAccount->getBalance(), "ATM Withdrawal");
-        t.saveToFile(currentAccount->getAccountNumber());
 
         saveAccountsToFile();
+
     }
 }
 
@@ -474,6 +459,9 @@ void ATM::changePIN() {
         if (newPin == confirmPin) {
             currentAccount->changePIN(newPin);
             cout << "PIN updated. Please use your new PIN next time.\n";
+
+            saveAccountsToFile();
+
         }
         else {
             cout << "PINs do not match. Change aborted.\n";

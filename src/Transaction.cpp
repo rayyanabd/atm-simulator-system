@@ -18,6 +18,16 @@ Transaction::Transaction(TransactionType t, double amt, double bal, string desc)
     timestamp = string(dt);
     if (!timestamp.empty()) timestamp.pop_back(); // Remove newline
 }
+
+Transaction::Transaction(TransactionType t, double amt, double bal, string desc,string time) {
+    type = t;
+    amount = amt;
+    balanceAfter = bal;
+    description = desc;
+
+    timestamp = time;
+}
+
 // Phase 2 — save transaction to file
 void Transaction::saveToFile(string accNum) {
     ofstream file("transactions.txt", ios::app);
@@ -41,7 +51,22 @@ void Transaction::printTransaction() const {
         << "| Bal: Rs." << setw(8) << balanceAfter
         << "| " << timestamp << endl;
 }
+TransactionType Transaction::stringtoType(string s)
+{
+    if (s == "WITHDRAW")
+    {
+        return TransactionType::WITHDRAWAL;
+    }
+     if (s == "DEPOSIT")
+    {
+        return TransactionType::DEPOSIT;
+    }
+     if (s == "FAST_CASH")
+     {
+         return TransactionType::FAST_CASH;
 
+     }
+}
 // Phase 2 — load all transactions from file
 void Transaction::loadFromFile() {
     ifstream file("transactions.txt");
@@ -49,7 +74,8 @@ void Transaction::loadFromFile() {
         cout << "No transaction history found.\n";
         return;
     }
-    string accnum, type, amt, bal, desc,time;
+    string accnum, amt,type, bal, desc,time;
+   
     cout << "\n=== TRANSACTION HISTORY ===\n";
     while (getline(file,accnum,',') &&
         getline(file, type, ',')&&
@@ -60,7 +86,11 @@ void Transaction::loadFromFile() {
         ) {
         double amount = stod(amt);
         double balance = stod(bal);
-        cout <<accnum << type << " | Rs." << amount << " | Bal: Rs." << balance << " | " << desc <<" | "<<time<<endl;
+
+        //converting string to type
+        TransactionType t = stringtoType(type);
+        
+        
     }
     file.close();
 }
