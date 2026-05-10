@@ -36,10 +36,6 @@ bool CurrentAccount::isNumeric(string str)
       
         if (str[i] >= '0' && str[i] <= '9')
             continue;
-
-      
-        if (str[i] == '-')
-            continue;
         return false;
     }
 
@@ -98,7 +94,7 @@ void  CurrentAccount::createAccount()
         cout << "Enter phone Number" << endl;
         cin >> phone_number;
 
-        if (!isNumeric(phone_number))
+        if (!isNumeric(phone_number) || phone_number.length() != 11)
             cout << "ERROR! Phone number must contain digits only.\n";
 
     } while (!isNumeric(phone_number));
