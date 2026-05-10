@@ -8,32 +8,118 @@ CurrentAccount::CurrentAccount() : Account() {
     dailyWithdrawn = 0.0;
     overdraftLimit = 10000.0;
 }
+bool CurrentAccount::isAlphabetic(string str)
+{
+    if (str.length() == 0)
+        return false;
 
+    for (int i = 0; i < str.length(); i++)
+    {
+        if (!((str[i] >= 'A' && str[i] <= 'Z') ||
+            (str[i] >= 'a' && str[i] <= 'z') ||
+            str[i] == ' '))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+bool CurrentAccount::isNumeric(string str)
+{
+
+    if (str.length() == 0)
+        return false;
+
+    for (int i = 0; i < str.length(); i++)
+    {
+      
+        if (str[i] >= '0' && str[i] <= '9')
+            continue;
+
+      
+        if (str[i] == '-')
+            continue;
+        return false;
+    }
+
+    return true;
+
+}
+
+string CurrentAccount::generateAccountno()
+{
+    string accNo, name, cnic, phone, pin, balanceStr, lockstr;
+    int lastacc=0;
+    ifstream infile("account.txt");
+    if (!infile) {
+        return "1001";
+    }
+    else
+        while (getline(infile, accNo, ',') &&
+            getline(infile, name, ',') &&
+            getline(infile, cnic, ',') &&
+            getline(infile, phone, ',') &&
+            getline(infile, balanceStr, ',') &&
+            getline(infile, pin, ',') &&
+            getline(infile, lockstr)
+            )
+
+        {
+            lastacc = stoi(accNo);
+        }
+    lastacc++;
+    return to_string(lastacc);
+}
 void  CurrentAccount::createAccount()
 {
-        cout << "Enter your name" << endl;
-        cin.ignore();                  
+    do {
+        cout << "Enter Name" << endl;
+        cin.ignore();
         getline(cin, accountHolder);
 
-        cout << "Enter CNIC Number" << endl;
+        if (!isAlphabetic(accountHolder))
+            cout << "ERROR! Name should contain alphabets only.\n";
+
+    } while (!isAlphabetic(accountHolder));
+
+
+    do {
+        cout << "Enter CNIC Number (13 digit input)" << endl;
         cin >> CNIC;
 
+        if (!isNumeric(CNIC) || CNIC.length() !=13)
+            cout << "ERROR! CNIC must contain 13 digits.\n";
+
+    } while (!isNumeric(CNIC) || CNIC.length() != 13);
+
+
+    do {
         cout << "Enter phone Number" << endl;
         cin >> phone_number;
 
-        cout << "Enter AccountNumber" << endl;
-        cin >> accountNumber;
+        if (!isNumeric(phone_number))
+            cout << "ERROR! Phone number must contain digits only.\n";
 
-        do {
-            cout << "Enter 4 digit pin" << endl;
-            cin >> pin;
-            if (pin.length() != 4)
-            {
-                cout << "ERROR! please enter 4 digit code" << endl;
-            }
-        } while (pin.length() != 4);
+    } while (!isNumeric(phone_number));
 
-        cout << "Account Created successfully!!" << endl;
+
+   
+        cout << "Your AccountNumber" << endl;
+        accountNumber = generateAccountno();
+        cout << accountNumber << endl;
+       
+
+
+    do {
+        cout << "Enter 4 digit pin" << endl;
+        cin >> pin;
+
+        if (!isNumeric(pin) || pin.length() != 4)
+            cout << "ERROR! Please enter exactly 4 digits.\n";
+
+    } while (!isNumeric(pin) || pin.length() != 4);
+    cout << "Account created successfully!!" << endl;
 
         saveAccountData();
        

@@ -5,7 +5,7 @@ using namespace std;
 
 const int MAX_ACCOUNTS = 1000;
 const int MAX_HISTORY = 10; // Number of transactions in mini-statement
-const int STARTING_ACC_NUM = 1001;
+
 
 // Role Constants
 const string ADMIN_PIN = "0000";

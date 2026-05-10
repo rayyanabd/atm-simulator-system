@@ -94,7 +94,6 @@ void ATM::saveAccountsToFile()
             << endl;
     }
 
-    cout << "File updated successfully.\n";
 }
 void ATM::toggleLock()
 {
@@ -161,7 +160,6 @@ void ATM::readTransactiondata()
 {
     ifstream file("transactions.txt");
     if (!file.is_open()) {
-        cout << "No transaction history found.\n";
         return;
     }
 
