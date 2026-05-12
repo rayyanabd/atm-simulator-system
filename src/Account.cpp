@@ -1,9 +1,15 @@
-#include "../include/Account.h"
+#include "Account.h"
 #include <iostream>
-
 using namespace std;
 
 Account::Account() {
+
+    accountNumber = "UNKNOWN";
+    accountHolder = "UNKNOWN";
+    CNIC = "NULL";
+    phone_number = "NULL";
+    pin = "NULL";
+
     balance = 0.0;
     isLocked = false;
     loginAttempts = 0;
@@ -17,6 +23,36 @@ Account::~Account() {
     }
 }
 
+void Account::setdata(string accno, string name, string cnic, string phoneno, double b, string pin, bool lock)
+{
+    accountHolder = name;
+    CNIC = cnic;
+    phone_number = phoneno;
+    accountNumber = accno;
+    balance = b;
+    this->pin = pin;
+    isLocked = lock;
+}
+string Account::getname()
+{
+    return accountHolder;
+}
+string Account::getCNIC()
+{
+    return CNIC;
+}
+string Account::getPIN()
+{
+    return pin;
+}
+string Account::getPhone()
+{
+    return phone_number;
+}
+void Account::setLock(bool status)
+{
+    isLocked = status;
+}
 bool Account::isAccountLocked() const {
     return isLocked;
 }
@@ -41,9 +77,24 @@ void Account::credit(double amount) {
 }
 
 void Account::addTransaction(TransactionType type, double amt, string desc) {
-    if (transactionCount < MAX_HISTORY) {
-        transactionHistory[transactionCount++] = new Transaction(type, amt, balance, desc);
-    }
+
+    if (transactionCount >= MAX_HISTORY)
+        return;
+
+    transactionHistory[transactionCount] =
+        new Transaction(type, amt, balance, desc);
+    transactionHistory[transactionCount]->saveToFile(accountNumber);
+    transactionCount++;
+}
+void Account::addTransaction(TransactionType type, double amt, std::string desc, std::string time)
+{
+    if (transactionCount >= MAX_HISTORY)
+        return;
+
+    transactionHistory[transactionCount] =
+        new Transaction(type, amt, balance, desc, time);
+
+    transactionCount++;
 }
 
 void Account::printMiniStatement() {
@@ -57,6 +108,4 @@ void Account::printMiniStatement() {
 
 void Account::changePIN(string newPIN) {
     pin = newPIN;
-    // Log PIN change 
-    addTransaction(TransactionType::DEPOSIT, 0, "PIN Updated");
 }

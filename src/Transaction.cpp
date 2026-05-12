@@ -1,5 +1,5 @@
-#define _CRT_SECURE_NO_WARNINGS 
-#include "../include/Transaction.h"
+#define _CRT_SECURE_NO_WARNINGS
+#include "Transaction.h"
 #include <iostream>
 #include <iomanip>
 #include <ctime>
@@ -19,6 +19,23 @@ Transaction::Transaction(TransactionType t, double amt, double bal, string desc)
     if (!timestamp.empty()) timestamp.pop_back(); // Remove newline
 }
 
+Transaction::Transaction(TransactionType t, double amt, double bal, string desc, string time) {
+    type = t;
+    amount = amt;
+    balanceAfter = bal;
+    description = desc;
+
+    timestamp = time;
+}
+
+// Phase 2, save transaction to file
+void Transaction::saveToFile(string accNum) {
+    ofstream file("transactions.txt", ios::app);
+    if (!file.is_open()) { cout << "Error saving transaction!\n"; return; }
+    file << accNum << "," << typeToString() << "," << amount << ","
+        << balanceAfter << "," << description << "," << timestamp << "\n";
+    file.close();
+}
 string Transaction::typeToString() const {
     switch (type) {
     case TransactionType::WITHDRAWAL: return "WITHDRAW";
