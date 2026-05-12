@@ -9,6 +9,7 @@ const int STARTING_ACC_NUM = 1001;
 
 // Role Constants
 const string ADMIN_PIN = "0000";
+const int ADMIN_ACCNO = 1000;
 const int ROLE_NONE = 0;
 const int ROLE_USER = 1;
 const int ROLE_SUPER_ADMIN = 2;

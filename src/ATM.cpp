@@ -1,21 +1,146 @@
-#include "../include/ATM.h"
+#include "ATM.h"
 #include <iostream>
-
+#include<fstream>
 using namespace std;
 
-
-
-ATM::ATM(double initialCash) {
-    cashAvailable = initialCash;
+ATM::ATM()
+{
+    cashAvailable = 0;
     accountCount = 0;
     currentAccount = nullptr;
-    for (int i = 0; i < MAX_ACCOUNTS; i++) accounts[i] = nullptr;
+    for (int i = 0; i < MAX_ACCOUNTS; i++)
+        accounts[i] = nullptr;
 }
+
 
 ATM::~ATM() {
     for (int i = 0; i < accountCount; i++) {
         delete accounts[i];
     }
+
+}
+void ATM::adminPortal()
+{
+    string pin;
+    cout << "Enter admin PIN: ";
+    cin >> pin;
+
+    if (pin != ADMIN_PIN)
+    {
+        cout << "Wrong admin PIN.\n";
+        return;
+    }
+
+    readAccountdata();
+
+    int choice;
+    do {
+        cout << "\n===== ADMIN PANEL =====\n";
+        cout << "1. View Accounts\n";
+        cout << "2. Lock/Unlock Account\n";
+        cout << "3. Delete Account\n";
+        cout << "4. Save & Exit\n";
+        cout << "Choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1: viewAccounts(); break;
+        case 2: toggleLock(); break;
+        case 3: deleteAccount(); break;
+        case 4: saveAccountsToFile(); break;
+        }
+    } while (choice != 4);
+
+}
+void ATM::deleteAccount()
+{
+    int flag = -1;
+    string accNo;
+    cout << "Enter account to delete: ";
+    cin >> accNo;
+
+    for (int i = 0; i < accountCount; i++)
+    {
+        if (accounts[i]->getAccountNumber() == accNo)
+        {
+            delete accounts[i];
+
+            for (int j = i; j < accountCount - 1; j++)
+            {
+                accounts[j] = accounts[j + 1];
+            }
+            flag = 1;
+            accountCount--;
+            cout << "Account deleted.\n";
+
+        }
+    }
+    if (flag == -1)
+        cout << "Account not found.\n";
+}
+void ATM::saveAccountsToFile()
+{
+    ofstream outfile("account.txt");
+
+    for (int i = 0; i < accountCount; i++)
+    {
+        outfile << accounts[i]->getAccountNumber() << ","
+            << accounts[i]->getname() << ","
+            << accounts[i]->getCNIC() << ","
+            << accounts[i]->getPhone() << ","
+            << accounts[i]->getBalance() << ","
+            << accounts[i]->getPIN() << ","
+            << accounts[i]->isAccountLocked()
+            << endl;
+    }
+
+    cout << "File updated successfully.\n";
+}
+void ATM::toggleLock()
+{
+    cout << "Total accounts: " << accountCount << endl;
+    string accNo;
+    cout << "Enter account number: ";
+    cin >> accNo;
+
+    for (int i = 0; i < accountCount; i++)
+    {
+        if (accounts[i]->getAccountNumber() == accNo)
+        {
+            bool status = accounts[i]->isAccountLocked();
+            accounts[i]->setLock(!status);
+
+            cout << "Account is now "
+                << (accounts[i]->isAccountLocked() ? "LOCKED" : "UNLOCKED") << endl;
+            return;
+        }
+    }
+
+    cout << "Account not found.\n";
+}
+
+void ATM::viewAccounts()
+{
+    cout << "\n--- All Accounts ---\n";
+
+    for (int i = 0; i < accountCount; i++)
+    {
+        if (accounts[i] != nullptr)
+        {
+            cout << accounts[i]->getAccountNumber()
+                << "\tRs. " << accounts[i]->getBalance()
+                << "\tAccount Status:  ";
+            if (accounts[i]->isAccountLocked())
+            {
+                cout << "Locked" << endl;
+            }
+            else {
+                cout << "Active Status" << endl;
+            }
+        }
+    }
+    cout << "[INFO] Accounts loaded: " << accountCount << endl;
 }
 
 void ATM::addAccount(Account* acc) {
@@ -25,12 +150,74 @@ void ATM::addAccount(Account* acc) {
 }
 
 int ATM::searchAcc(string accNum) {
+    //file check
+    readAccountdata();
     for (int i = 0; i < accountCount; i++) {
-        if (accounts[i]->getAccountNumber() == accNum) return i;
+        if (accounts[i]->getAccountNumber() == accNum)
+            return i;
     }
+
     return -1;
 }
+void ATM::readTransactiondata()
+{
+    ifstream file("transactions.txt");
+    if (!file.is_open()) {
+        cout << "No transaction history found.\n";
+        return;
+    }
 
+    string accnum, type, amt, bal, desc, time;
+    while (getline(file, accnum, ',') &&
+        getline(file, type, ',') &&
+        getline(file, amt, ',') &&
+        getline(file, bal, ',') &&
+        getline(file, desc, ',') &&
+        getline(file, time)
+        )
+    {
+        double tran_amount = stod(amt);
+        double tran_balance = stod(bal);
+        if (accnum == currentAccount->getAccountNumber()) {
+            TransactionType ttype;
+
+            if (type == "DEPOSIT") ttype = TransactionType::DEPOSIT;
+            else if (type == "WITHDRAW") ttype = TransactionType::WITHDRAWAL;
+            else if (type == "FAST_CASH") ttype = TransactionType::FAST_CASH;
+            else ttype = TransactionType::WITHDRAWAL;
+
+            currentAccount->addTransaction(ttype, tran_amount, desc, time);
+        }
+
+    }
+    file.close();
+}
+void ATM::readAccountdata()
+{
+    string accNo, name, cnic, phone, pin, balanceStr, lockstr;
+    ifstream infile("account.txt");
+    if (!infile) {
+        cout << "File not found!\n";
+    }
+    else
+        while (getline(infile, accNo, ',') &&
+            getline(infile, name, ',') &&
+            getline(infile, cnic, ',') &&
+            getline(infile, phone, ',') &&
+            getline(infile, balanceStr, ',') &&
+            getline(infile, pin, ',') &&
+            getline(infile, lockstr)
+            )
+
+        {
+            double balance = stod(balanceStr);
+            bool lock = (lockstr == "1");
+            Account* tempAcc = new CurrentAccount();
+            tempAcc->setdata(accNo, name, cnic, phone, balance, pin, lock);
+            accounts[accountCount++] = tempAcc;
+        }
+
+}
 void ATM::start() {
     int choice;
     bool systemRunning = true;
@@ -44,7 +231,8 @@ void ATM::start() {
         cout << "Choice: ";
 
         if (!(cin >> choice)) {
-            cin.clear(); cin.ignore(1000, '\n');
+            cin.clear();
+            cin.ignore(1000, '\n');
             cout << "[INVALID] Please enter 1 or 0.\n";
             continue;
         }
@@ -57,7 +245,7 @@ void ATM::start() {
             int accAttempts = 0;
             bool sessionActive = false;
 
-            // Account Number Identification 
+            // Account Number Identification
             while (accAttempts < 3) {
                 string accNum;
                 cout << "\nEnter Account Number: ";
@@ -71,7 +259,7 @@ void ATM::start() {
                         break;
                     }
 
-                    //  PIN Verification 
+                    //  PIN Verification
                     int pinAttempts = 0;
                     bool pinSuccess = false;
 
@@ -122,8 +310,11 @@ bool ATM::insertCard(string accNum) {
     int temp = searchAcc(accNum);
     if (temp != -1) {
         currentAccount = accounts[temp];
+        cashAvailable = currentAccount->getBalance();
+        readTransactiondata();
         return true;
     }
+
     cout << "[ERROR] Card unrecognized or invalid account.\n";
     return false;
 }
@@ -139,7 +330,7 @@ bool ATM::enterPIN(string pin) {
 }
 
 void ATM::withdraw(double amount) {
-    
+
     if (amount > 20000) {
         cout << "DENIED: Maximum withdrawal per transaction is Rs. 20,000.\n";
         return;
@@ -154,11 +345,15 @@ void ATM::withdraw(double amount) {
     if (currentAccount->debit(amount)) {
         cashAvailable -= amount;
         cout << "[SUCCESS] Please collect your cash: Rs. " << amount << endl;
+
+
+        saveAccountsToFile();
+
     }
 }
 
 void ATM::fastCash() {
-   
+
     double options[] = { 500, 1000, 2000, 5000, 10000, 20000 };
     cout << "\n======= FAST CASH =======\n";
     for (int i = 0; i < 6; i++) {
@@ -166,7 +361,7 @@ void ATM::fastCash() {
     }
 
     int choice;
-    cout << "Choice: "; 
+    cout << "Choice: ";
     cin >> choice;
 
     if (choice >= 1 && choice <= 6) {
@@ -184,9 +379,9 @@ void ATM::showMainMenu() {
         cout << "\n---------- MAIN MENU ----------\n";
         cout << "1. Balance Inquiry\n";
         cout << "2. Cash Withdrawal\n";
-        cout << "3. Cash Deposit\n";     
+        cout << "3. Cash Deposit\n";
         cout << "4. Fast Cash\n";
-        cout << "5. Change PIN\n";        
+        cout << "5. Change PIN\n";
         cout << "6. Mini Statement\n";
         cout << "0. Logout / Exit\n";
         cout << "-------------------------------\n";
@@ -229,6 +424,13 @@ void ATM::deposit() {
     currentAccount->credit(amount);
     cashAvailable += amount;
     cout << "Deposit complete.\n";
+    //saving to file
+    Transaction t(TransactionType::DEPOSIT, amount,
+        currentAccount->getBalance(), "ATM Deposit");
+    t.saveToFile(currentAccount->getAccountNumber());
+
+    saveAccountsToFile();
+
 }
 
 void ATM::checkBalance() {
@@ -248,7 +450,7 @@ void ATM::changePIN() {
         cout << "Enter New 4-Digit PIN: ";
         cin >> newPin;
 
-        
+
         if (newPin.length() != 4) {
             cout << "Error: PIN must be exactly 4 digits.\n";
             return;
@@ -260,6 +462,9 @@ void ATM::changePIN() {
         if (newPin == confirmPin) {
             currentAccount->changePIN(newPin);
             cout << "PIN updated. Please use your new PIN next time.\n";
+
+            saveAccountsToFile();
+
         }
         else {
             cout << "PINs do not match. Change aborted.\n";
