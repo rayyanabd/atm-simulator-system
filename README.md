@@ -3,6 +3,8 @@ ATM Simulation System - OOP Project.
 
 This GitHub Repository aims to document the learning process associated with building an ATM simulation system from scratch using principles of OOP.
 
+Qt framework has been used to develop the front-end.
+
 Program Structure:
 
 ATM System
@@ -11,9 +13,9 @@ ATM System
 
 ├── WelcomeScreen
 
-│     ├── Press 1 → OpenNewAccount()
+│     ├──  Open New Account
 
-│     └── Enter Account Number → insertCard()
+│     └── Enter Account Number
 
 │
 
@@ -21,23 +23,19 @@ ATM System
 
 │     ├── enterPIN()
 
-│     │     ├── Admin PIN → adminMenu()
+│     │     ├── Admin PIN → Admin Meni
 
-│     │     └── User PIN → showAccountType()
+│     │     └── User PIN → ATM Main Menu
 
 │     └── 3 wrong attempts → lockout
 
 │
 
-├── showAccountType()  
-
-│     └── proceed to mainMenu()
-
 │
 
-├── mainMenu()
+├── Main Menu
 
-│     ├── 1. Balance
+│     ├── 1. Balance Inquiry
 
 │     ├── 2. Mini Statement
 
@@ -53,12 +51,12 @@ ATM System
 
 │
 
-└── adminMenu()        
+└── Admin Menu       
 
-|  ├── View all accounts
+|     ├── View all accounts
       
-|     ├── Search for accounts
+|     ├── View Account balance
 
-|    ├── Check ATM cash level
+|     ├── Lock/Unlock Accounts
 
-|   └── Exit
+|     └── Exit
