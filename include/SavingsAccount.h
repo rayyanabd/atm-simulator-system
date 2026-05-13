@@ -1,10 +1,13 @@
 #pragma once
 #include "Account.h"
+#include "Constants.h"
 
 class SavingsAccount : public Account {
 public:
-    SavingsAccount(int accNum, std::string nm, double bal, std::string p)
-        : Account(accNum, nm, bal, p) {
-    }
-    // Add savings specific methods here
+    SavingsAccount();
+    bool debit(double amount) override;
+    std::string getAccountType() override { return "Savings Account"; }
+
+    // Interest application
+    void applyInterest();
 };
