@@ -12,6 +12,8 @@ protected:
     string pin;
     string CNIC;
     string phone_number;
+    string creationDate;
+    string lastInterestDate;
 
     double balance;
     bool isLocked;
@@ -26,6 +28,7 @@ public:
     virtual ~Account(); // Virtual destructor for memory safety
 
     void setdata(string accno, string name, string cnic, string phoneno, double b, string pin, bool lock);
+    void setdata(string accno, string name, string cnic, string phoneno, double b, string pin, bool lock, string created, string lastInterest);
     // Common Logic
     bool validatePIN(std::string p);
     void credit(double amount);
@@ -44,6 +47,10 @@ public:
     string getCNIC();
     string getPIN();
     string getPhone();
+    string getCreationDate();
+    string getLastInterestDate();
+    void setCreationDate(string date);
+    void setLastInterestDate(string date);
 
     // Pure Virtual Functions (Must be implemented by children)
     virtual bool debit(double amount) = 0;

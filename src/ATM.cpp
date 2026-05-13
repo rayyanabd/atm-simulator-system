@@ -1,7 +1,63 @@
 #include "ATM.h"
+#include "CurrentAccount.h"
+#include "SavingsAccount.h"
 #include <iostream>
 #include<fstream>
+#include <sstream>
+#include <ctime>
 using namespace std;
+
+string currentDateString()
+{
+    time_t now = time(0);
+    tm localTime;
+    localtime_s(&localTime, &now);
+
+    char buffer[11];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d", &localTime);
+    return string(buffer);
+}
+
+bool parseDateParts(string date, int& year, int& month, int& day)
+{
+    if (date.length() < 10 || date[4] != '-' || date[7] != '-') {
+        return false;
+    }
+
+    year = stoi(date.substr(0, 4));
+    month = stoi(date.substr(5, 2));
+    day = stoi(date.substr(8, 2));
+    return true;
+}
+
+bool oneYearPassed(string fromDate, string toDate)
+{
+    int fromYear, fromMonth, fromDay;
+    int toYear, toMonth, toDay;
+
+    if (!parseDateParts(fromDate, fromYear, fromMonth, fromDay) ||
+        !parseDateParts(toDate, toYear, toMonth, toDay)) {
+        return false;
+    }
+
+    if (toYear - fromYear > 1) {
+        return true;
+    }
+
+    if (toYear - fromYear < 1) {
+        return false;
+    }
+
+    if (toMonth > fromMonth) {
+        return true;
+    }
+
+    if (toMonth == fromMonth && toDay >= fromDay) {
+        return true;
+    }
+
+    return false;
+}
 
 ATM::ATM()
 {
@@ -85,13 +141,28 @@ void ATM::saveAccountsToFile()
 
     for (int i = 0; i < accountCount; i++)
     {
+        string creationDate = accounts[i]->getCreationDate();
+        if (creationDate.empty()) {
+            creationDate = currentDateString();
+            accounts[i]->setCreationDate(creationDate);
+        }
+
+        string lastInterestDate = accounts[i]->getLastInterestDate();
+        if (lastInterestDate.empty()) {
+            lastInterestDate = creationDate;
+            accounts[i]->setLastInterestDate(lastInterestDate);
+        }
+
         outfile << accounts[i]->getAccountNumber() << ","
             << accounts[i]->getname() << ","
             << accounts[i]->getCNIC() << ","
             << accounts[i]->getPhone() << ","
             << accounts[i]->getBalance() << ","
             << accounts[i]->getPIN() << ","
-            << accounts[i]->isAccountLocked()
+            << accounts[i]->isAccountLocked() << ","
+            << (accounts[i]->getAccountType() == "Savings Account" ? "savings" : "current") << ","
+            << creationDate << ","
+            << lastInterestDate
             << endl;
     }
 
@@ -167,6 +238,12 @@ void ATM::readTransactiondata()
         return;
     }
 
+    TransactionType recentTypes[MAX_HISTORY];
+    double recentAmounts[MAX_HISTORY];
+    string recentDescriptions[MAX_HISTORY];
+    string recentTimes[MAX_HISTORY];
+    int recentCount = 0;
+
     string accnum, type, amt, bal, desc, time;
     while (getline(file, accnum, ',') &&
         getline(file, type, ',') &&
@@ -186,38 +263,124 @@ void ATM::readTransactiondata()
             else if (type == "FAST_CASH") ttype = TransactionType::FAST_CASH;
             else ttype = TransactionType::WITHDRAWAL;
 
-            currentAccount->addTransaction(ttype, tran_amount, desc, time);
+            if (recentCount < MAX_HISTORY) {
+                recentTypes[recentCount] = ttype;
+                recentAmounts[recentCount] = tran_amount;
+                recentDescriptions[recentCount] = desc;
+                recentTimes[recentCount] = time;
+                recentCount++;
+            }
+            else {
+                for (int i = 1; i < MAX_HISTORY; i++) {
+                    recentTypes[i - 1] = recentTypes[i];
+                    recentAmounts[i - 1] = recentAmounts[i];
+                    recentDescriptions[i - 1] = recentDescriptions[i];
+                    recentTimes[i - 1] = recentTimes[i];
+                }
+
+                recentTypes[MAX_HISTORY - 1] = ttype;
+                recentAmounts[MAX_HISTORY - 1] = tran_amount;
+                recentDescriptions[MAX_HISTORY - 1] = desc;
+                recentTimes[MAX_HISTORY - 1] = time;
+            }
         }
 
     }
     file.close();
+
+    for (int i = 0; i < recentCount; i++) {
+        currentAccount->addTransaction(recentTypes[i], recentAmounts[i], recentDescriptions[i], recentTimes[i]);
+    }
 }
 void ATM::readAccountdata()
 {
-    string accNo, name, cnic, phone, pin, balanceStr, lockstr;
+    string line;
     ifstream infile("account.txt");
     if (!infile) {
         cout << "File not found!\n";
     }
     else
-        while (getline(infile, accNo, ',') &&
-            getline(infile, name, ',') &&
-            getline(infile, cnic, ',') &&
-            getline(infile, phone, ',') &&
-            getline(infile, balanceStr, ',') &&
-            getline(infile, pin, ',') &&
-            getline(infile, lockstr)
-            )
-
+        while (getline(infile, line))
         {
+            if (line.empty()) {
+                continue;
+            }
+
+            stringstream lineStream(line);
+
+            string accNo, name, cnic, phone, balanceStr, pin, lockstr, typestr, creationDate, lastInterestDate;
+            if (!getline(lineStream, accNo, ',') ||
+                !getline(lineStream, name, ',') ||
+                !getline(lineStream, cnic, ',') ||
+                !getline(lineStream, phone, ',') ||
+                !getline(lineStream, balanceStr, ',') ||
+                !getline(lineStream, pin, ',') ||
+                !getline(lineStream, lockstr, ',')) {
+                continue;
+            }
+
+            if (!getline(lineStream, typestr, ',')) {
+                typestr = "current";
+            }
+
+            if (!getline(lineStream, creationDate, ',')) {
+                creationDate = currentDateString();
+            }
+
+            if (!getline(lineStream, lastInterestDate)) {
+                lastInterestDate = creationDate;
+            }
+
             double balance = stod(balanceStr);
             bool lock = (lockstr == "1");
-            Account* tempAcc = new CurrentAccount();
-            tempAcc->setdata(accNo, name, cnic, phone, balance, pin, lock);
+
+            Account* tempAcc = nullptr;
+            if (typestr == "savings" || typestr == "1") {
+                tempAcc = new SavingsAccount();
+            }
+            else {
+                tempAcc = new CurrentAccount();
+            }
+
+            tempAcc->setdata(accNo, name, cnic, phone, balance, pin, lock, creationDate, lastInterestDate);
             accounts[accountCount++] = tempAcc;
         }
 
 }
+bool ATM::applySavingsInterestIfDue()
+{
+    if (currentAccount == nullptr || currentAccount->getAccountType() != "Savings Account") {
+        return false;
+    }
+
+    string today = currentDateString();
+    string creationDate = currentAccount->getCreationDate();
+    if (creationDate.empty()) {
+        creationDate = today;
+        currentAccount->setCreationDate(creationDate);
+    }
+
+    string lastInterestDate = currentAccount->getLastInterestDate();
+    if (lastInterestDate.empty()) {
+        lastInterestDate = creationDate;
+        currentAccount->setLastInterestDate(lastInterestDate);
+    }
+
+    if (!oneYearPassed(lastInterestDate, today)) {
+        return false;
+    }
+
+    SavingsAccount* savingsAccount = dynamic_cast<SavingsAccount*>(currentAccount);
+    if (savingsAccount == nullptr) {
+        return false;
+    }
+
+    savingsAccount->applyInterest();
+    currentAccount->setLastInterestDate(today);
+    saveAccountsToFile();
+    return true;
+}
+
 void ATM::start() {
     int choice;
     bool systemRunning = true;
@@ -271,6 +434,9 @@ void ATM::start() {
                         // validatePIN handles the internal counter and locking logic
                         if (currentAccount->validatePIN(pin)) {
                             cout << "Login accepted.\n";
+                            if (applySavingsInterestIfDue()) {
+                                cout << "Annual savings interest applied.\n";
+                            }
                             pinSuccess = true;
                             showMainMenu(); // Enter banking system
                             break;
@@ -322,6 +488,9 @@ bool ATM::insertCard(string accNum) {
 bool ATM::enterPIN(string pin) {
     if (currentAccount->validatePIN(pin)) {
         cout << "[SUCCESS] Access Granted.\n";
+        if (applySavingsInterestIfDue()) {
+            cout << "Annual savings interest applied.\n";
+        }
         return true;
     }
     cout << "[DENIED] Incorrect PIN.\n";

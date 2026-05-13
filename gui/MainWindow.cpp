@@ -1,5 +1,7 @@
 ﻿#include "MainWindow.h"
 
+#include "SavingsAccount.h"
+
 #define PIN_LENGTH 4
 #define MAX_PIN_ATTEMPTS 3
 #define MINI_STATEMENT_COUNT 10
@@ -59,6 +61,7 @@ MainWindow::MainWindow(QWidget* parent)
     newPinEdit(nullptr),
     confirmPinEdit(nullptr),
     cnicEdit(nullptr),
+    accountTypeCombo(nullptr),
     newAccountPinEdit(nullptr),
     confirmAccountPinEdit(nullptr),
     successTitleLabel(nullptr),
@@ -169,7 +172,8 @@ MainWindow::MainWindow(QWidget* parent)
         "QLabel#AccountInfoText { color: #37474F; font-size: 16px; font-weight: 650; }"
         "QLineEdit, QComboBox { background: #FFFFFF; border: 1px solid #D0D0C8; border-radius: 9px; color: #1D2327; padding: 14px 16px; font-size: 24px; selection-background-color: #008B8B; }"
         "QLineEdit:focus, QComboBox:focus { border: 2px solid #008B8B; }"
-        "QComboBox { font-size: 20px; min-height: 36px; }"
+        "QComboBox { color: #1D2327; font-size: 20px; min-height: 36px; }"
+        "QComboBox QAbstractItemView { background: #FFFFFF; color: #1D2327; border: 1px solid #D0D0C8; selection-background-color: #008B8B; selection-color: #FFFFFF; }"
         "QPushButton { border-radius: 10px; color: #1D2327; font-size: 18px; font-weight: 750; padding: 13px 20px; min-height: 56px; }"
         "QPushButton#PrimaryButton { background: #008B8B; border: 1px solid #007373; color: #FFFFFF; }"
         "QPushButton#PrimaryButton:hover { background: #00A3A3; }"
@@ -301,6 +305,8 @@ QWidget* MainWindow::createPinPage() {
     leftLayout->setContentsMargins(44, 42, 44, 42);
     leftLayout->setSpacing(22);
     QLabel* prompt = createHeading("PLEASE ENTER YOUR\n4-DIGIT PIN");
+    prompt->setMinimumHeight(120);
+    prompt->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     QLabel* sub = createSubheading("To authorize your access");
     pinEdit = createPinEdit("PIN");
     pinEdit->setAlignment(Qt::AlignCenter);
@@ -644,11 +650,15 @@ QWidget* MainWindow::createNewAccountPage() {
     cnicEdit = new QLineEdit(panel);
     cnicEdit->setInputMask("00000-0000000-0;_");
     cnicEdit->setPlaceholderText("XXXXX-XXXXXXX-X");
+    accountTypeCombo = new QComboBox(panel);
+    accountTypeCombo->addItem("Current Account", "current");
+    accountTypeCombo->addItem("Savings Account", "savings");
     newAccountPinEdit = createPinEdit("Create New PIN");
     confirmAccountPinEdit = createPinEdit("Confirm PIN");
 
     const int fieldWidth = 420;
     cnicEdit->setFixedWidth(fieldWidth);
+    accountTypeCombo->setFixedWidth(fieldWidth);
     newAccountPinEdit->setFixedWidth(fieldWidth);
     confirmAccountPinEdit->setFixedWidth(fieldWidth);
 
@@ -661,7 +671,17 @@ QWidget* MainWindow::createNewAccountPage() {
     dummySpacer->setFixedWidth(58);
     cnicLayout->addWidget(dummySpacer);
 
+    QWidget* accountTypeWrapper = new QWidget(panel);
+    QHBoxLayout* accountTypeLayout = new QHBoxLayout(accountTypeWrapper);
+    accountTypeLayout->setContentsMargins(0, 0, 0, 0);
+    accountTypeLayout->setSpacing(10);
+    accountTypeLayout->addWidget(accountTypeCombo, 1);
+    QWidget* accountTypeSpacer = new QWidget(accountTypeWrapper);
+    accountTypeSpacer->setFixedWidth(58);
+    accountTypeLayout->addWidget(accountTypeSpacer);
+
     form->addRow(createSubheading("CNIC No."), cnicWrapper);
+    form->addRow(createSubheading("Account Type"), accountTypeWrapper);
     form->addRow(createSubheading("Create New PIN"), createPinInputWithToggle(newAccountPinEdit));
     form->addRow(createSubheading("Re-enter PIN to Confirm"), createPinInputWithToggle(confirmAccountPinEdit));
 
@@ -1066,6 +1086,7 @@ void MainWindow::submitPin() {
     }
 
     if (atm.currentAccount->validatePIN(pin.toStdString())) {
+        atm.applySavingsInterestIfDue();
         pinEdit->clear();
         goMainMenu();
         return;
@@ -1258,7 +1279,10 @@ void MainWindow::submitNewAccount() {
 
     std::string accountNumber = std::to_string(STARTING_ACC_NUM + atm.accountCount);
 
-    Account* newAcc = new CurrentAccount();
+    const bool isSavingsAccount = accountTypeCombo != nullptr &&
+        accountTypeCombo->currentData().toString() == "savings";
+    Account* newAcc = isSavingsAccount ? static_cast<Account*>(new SavingsAccount())
+        : static_cast<Account*>(new CurrentAccount());
     newAcc->setdata(accountNumber, "New User", cnic.toStdString(), "00000000000", 1000.0, pin.toStdString(), false);
 
     atm.addAccount(newAcc);
@@ -1366,7 +1390,11 @@ void MainWindow::refreshBalance() {
     }
 
     balanceTypeValue->setText(QString::fromStdString(account->getAccountType()));
-    balanceAmountValue->setText(moneyText(account->getBalance()));
+    QString balanceText = moneyText(account->getBalance());
+    if (account->getAccountType() == "Savings Account") {
+        balanceText += "\nAnnual Interest (2% p.a.): " + moneyText(account->getBalance() * SAVINGS_INTEREST_RATE);
+    }
+    balanceAmountValue->setText(balanceText);
 }
 
 void MainWindow::refreshMiniStatement() {
@@ -1428,6 +1456,7 @@ void MainWindow::clearSensitiveFields() {
     if (newPinEdit) newPinEdit->clear();
     if (confirmPinEdit) confirmPinEdit->clear();
     if (cnicEdit) cnicEdit->clear();
+    if (accountTypeCombo) accountTypeCombo->setCurrentIndex(0);
     if (newAccountPinEdit) newAccountPinEdit->clear();
     if (confirmAccountPinEdit) confirmAccountPinEdit->clear();
 }
