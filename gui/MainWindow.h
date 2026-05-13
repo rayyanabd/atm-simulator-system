@@ -85,6 +85,7 @@ private:
     QLineEdit* newPinEdit;
     QLineEdit* confirmPinEdit;
     QLineEdit* cnicEdit;
+    QComboBox* accountTypeCombo;
     QLineEdit* newAccountPinEdit;
     QLineEdit* confirmAccountPinEdit;
     QLabel* successTitleLabel;

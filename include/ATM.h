@@ -42,4 +42,5 @@ public:
     void toggleLock();
     void deleteAccount();
     void saveAccountsToFile();
+    bool applySavingsInterestIfDue();
 };

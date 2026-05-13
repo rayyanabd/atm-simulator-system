@@ -28,7 +28,7 @@ Transaction::Transaction(TransactionType t, double amt, double bal, string desc,
     timestamp = time;
 }
 
-// Phase 2, save transaction to file
+// Phase 2 — save transaction to file
 void Transaction::saveToFile(string accNum) {
     ofstream file("transactions.txt", ios::app);
     if (!file.is_open()) { cout << "Error saving transaction!\n"; return; }

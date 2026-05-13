@@ -13,6 +13,7 @@ const int ADMIN_ACCNO = 1000;
 const int ROLE_NONE = 0;
 const int ROLE_USER = 1;
 const int ROLE_SUPER_ADMIN = 2;
+const double SAVINGS_INTEREST_RATE = 0.02;
 
 // Enums for clarity
 enum class TransactionType { WITHDRAWAL, DEPOSIT, FAST_CASH, TRANSFER };

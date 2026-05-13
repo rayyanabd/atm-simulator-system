@@ -9,6 +9,8 @@ Account::Account() {
     CNIC = "NULL";
     phone_number = "NULL";
     pin = "NULL";
+    creationDate = "";
+    lastInterestDate = "";
 
     balance = 0.0;
     isLocked = false;
@@ -33,6 +35,12 @@ void Account::setdata(string accno, string name, string cnic, string phoneno, do
     this->pin = pin;
     isLocked = lock;
 }
+void Account::setdata(string accno, string name, string cnic, string phoneno, double b, string pin, bool lock, string created, string lastInterest)
+{
+    setdata(accno, name, cnic, phoneno, b, pin, lock);
+    creationDate = created;
+    lastInterestDate = lastInterest;
+}
 string Account::getname()
 {
     return accountHolder;
@@ -48,6 +56,22 @@ string Account::getPIN()
 string Account::getPhone()
 {
     return phone_number;
+}
+string Account::getCreationDate()
+{
+    return creationDate;
+}
+string Account::getLastInterestDate()
+{
+    return lastInterestDate;
+}
+void Account::setCreationDate(string date)
+{
+    creationDate = date;
+}
+void Account::setLastInterestDate(string date)
+{
+    lastInterestDate = date;
 }
 void Account::setLock(bool status)
 {
@@ -78,23 +102,41 @@ void Account::credit(double amount) {
 
 void Account::addTransaction(TransactionType type, double amt, string desc) {
 
-    if (transactionCount >= MAX_HISTORY)
-        return;
+    int insertIndex = transactionCount;
+    if (transactionCount >= MAX_HISTORY) {
+        delete transactionHistory[0];
+        for (int i = 1; i < MAX_HISTORY; i++) {
+            transactionHistory[i - 1] = transactionHistory[i];
+        }
+        insertIndex = MAX_HISTORY - 1;
+        transactionHistory[insertIndex] = nullptr;
+    }
 
-    transactionHistory[transactionCount] =
+    transactionHistory[insertIndex] =
         new Transaction(type, amt, balance, desc);
-    transactionHistory[transactionCount]->saveToFile(accountNumber);
-    transactionCount++;
+    transactionHistory[insertIndex]->saveToFile(accountNumber);
+    if (transactionCount < MAX_HISTORY) {
+        transactionCount++;
+    }
 }
 void Account::addTransaction(TransactionType type, double amt, std::string desc, std::string time)
 {
-    if (transactionCount >= MAX_HISTORY)
-        return;
+    int insertIndex = transactionCount;
+    if (transactionCount >= MAX_HISTORY) {
+        delete transactionHistory[0];
+        for (int i = 1; i < MAX_HISTORY; i++) {
+            transactionHistory[i - 1] = transactionHistory[i];
+        }
+        insertIndex = MAX_HISTORY - 1;
+        transactionHistory[insertIndex] = nullptr;
+    }
 
-    transactionHistory[transactionCount] =
+    transactionHistory[insertIndex] =
         new Transaction(type, amt, balance, desc, time);
 
-    transactionCount++;
+    if (transactionCount < MAX_HISTORY) {
+        transactionCount++;
+    }
 }
 
 void Account::printMiniStatement() {
